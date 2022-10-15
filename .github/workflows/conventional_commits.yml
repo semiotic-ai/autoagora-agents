@@ -8,7 +8,7 @@ on:
       - synchronize
 
 jobs:
-  main:
+  conventional-commits-check:
     name: Check conventional commits
     runs-on: ubuntu-latest
     steps:
@@ -25,3 +25,5 @@ jobs:
         run: pip install commitizen
       - name: commitizen check
         run: cz check --rev-range ${{ github.event.pull_request.base.sha }}..HEAD
+  dco-check:
+    uses: cncf/dcochecker/.github/workflows/dco.yml@main
