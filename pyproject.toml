@@ -16,6 +16,9 @@ classifiers = [
 packages = [
     { include = "autoagora_agents" },
 ]
+[tool.poetry.group.isa.dependencies]
+autoagora-isa = {git = "ssh://git@github.com/semiotic-ai/autoagora-isa.git", rev = "08142a5dcf3cd44c957921d67792d5188d4894ea"}
+
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -47,10 +50,6 @@ torch = [
 anyio = "^3.5.0"
 numpy = "^1.22.3"
 scipy = "^1.8.0"
-autoagora-isa = {git = "ssh://git@github.com/semiotic-ai/autoagora-isa.git", rev = "08142a5dcf3cd44c957921d67792d5188d4894ea", optional = true}
-
-[tool.poetry.extras]
-isa = ["autoagora-isa"]
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
