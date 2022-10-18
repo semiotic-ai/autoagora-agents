@@ -3,7 +3,7 @@
 
 import torch
 
-from agents.policy_mixins import ExperienceBufferPolicy
+from autoagora_agents.policy_mixins import ExperienceBufferPolicy
 
 
 class VanillaPolicyGradient(ExperienceBufferPolicy):

@@ -8,8 +8,8 @@ import numpy
 import pytest
 import torch
 
-from agents.agent_factory import AgentFactory
-from agents.policy_mixins import Policy
+from autoagora_agents.agent_factory import AgentFactory
+from autoagora_agents.policy_mixins import Policy
 
 
 class TestScaledGaussianAgent:

@@ -1,8 +1,8 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from agents.action_mixins import Action
-from agents.policy_mixins import Policy
+from autoagora_agents.action_mixins import Action
+from autoagora_agents.policy_mixins import Policy
 
 
 class Agent(Action, Policy):

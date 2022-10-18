@@ -10,7 +10,7 @@ import scipy.stats as stats
 import torch
 from torch import distributions, nn
 
-from agents.mixin import ABCMixin
+from autoagora_agents.mixin import ABCMixin
 
 
 class Action(ABCMixin):
