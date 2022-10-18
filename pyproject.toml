@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "autoagora"
+name = "autoagora-agents"
 version = "0.0.0"
 authors = [
     "Alexis Asseman <alexis@semiotic.ai>",
