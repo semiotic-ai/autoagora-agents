@@ -14,8 +14,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License"
 ]
 packages = [
-    { include = "agents" },
-    { include = "environments" },
+    { include = "autoagora_agents" },
 ]
 
 [tool.poetry-dynamic-versioning]

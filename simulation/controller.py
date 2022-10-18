@@ -4,7 +4,7 @@
 import argparse
 import json
 
-from agents.agent_factory import AgentFactory
+from autoagora_agents.agent_factory import AgentFactory
 from environments.environment_factory import EnvironmentFactory
 
 

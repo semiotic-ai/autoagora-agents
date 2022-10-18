@@ -3,15 +3,15 @@
 
 import pytest
 
-from agents.action_mixins import (
+from autoagora_agents.action_mixins import (
     Action,
     DeterministicAction,
     GaussianAction,
     ScaledGaussianAction,
 )
-from agents.agent_factory import AgentFactory
-from agents.policy_mixins import NoUpdatePolicy, Policy
-from agents.reinforcement_learning_policy_mixins import (
+from autoagora_agents.agent_factory import AgentFactory
+from autoagora_agents.policy_mixins import NoUpdatePolicy, Policy
+from autoagora_agents.reinforcement_learning_policy_mixins import (
     ProximalPolicyOptimization,
     RollingMemoryPPO,
     VanillaPolicyGradient,

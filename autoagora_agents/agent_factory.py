@@ -6,14 +6,14 @@ import inspect
 
 import torch.optim as optim
 
-from agents.action_mixins import (
+from autoagora_agents.action_mixins import (
     DeterministicAction,
     GaussianAction,
     ScaledGaussianAction,
 )
-from agents.agent import Agent
-from agents.policy_mixins import NoUpdatePolicy
-from agents.reinforcement_learning_policy_mixins import (
+from autoagora_agents.agent import Agent
+from autoagora_agents.policy_mixins import NoUpdatePolicy
+from autoagora_agents.reinforcement_learning_policy_mixins import (
     ProximalPolicyOptimization,
     RollingMemoryPPO,
     VanillaPolicyGradient,

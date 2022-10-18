@@ -3,7 +3,7 @@
 
 from abc import abstractmethod
 
-from agents.mixin import ABCMixin
+from autoagora_agents.mixin import ABCMixin
 
 
 class Policy(ABCMixin):
