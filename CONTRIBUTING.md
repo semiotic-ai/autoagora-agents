@@ -19,7 +19,8 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 - [I Want To Contribute](#i-want-to-contribute)
   - [Reporting Bugs](#reporting-bugs)
   - [Suggesting Enhancements](#suggesting-enhancements)
-  - [Improving The Documentation](#improving-the-documentation)
+  - [Contributing PRs](#contributing-prs)
+  - [Reviewing, Approving and Merging PRs](#reviewing-approving-and-merging-prs)
 - [Styleguides](#styleguides)
   - [Code style](#code-style)
   - [Static type hints](#static-type-hints)
@@ -167,12 +168,43 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/semiot
 
 <!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
-### Improving The Documentation
-<!-- TODO
-Updating, improving and correcting the documentation
+### Contributing PRs
 
--->
-TODO
+- PRs should match the existing code style present in the file.
+- PRs affecting the public API, including adding new features, must update the public documentation.
+- Comments and (possibly internal) docstrings should make the code accessible.
+- You should usually open an issue about a bug or possible improvement before opening a PR with a solution.
+- PRs should do a single thing, so that they are easier to review.
+  - For example, fix one bug, or update compatibility, rather than fixing a bunch of bugs and updating compatibility and adding a new feature.
+- PRs should add tests which cover the new or fixed functionality.
+- PRs that move code should not also change code, so that they are easier to review.
+  - If only moving code, review for correctness is not required.
+  - If only changing code, then the diff makes it clear what lines have changed.
+- PRs with large improvements to style should not also change functionality.
+  - This is to avoid making large diffs that are not the focus of the PR.
+  - While it is often helpful to fix a few typos in comments on the way past, it is different to using a regex or formatter on the whole project to fix spacing around operators.
+- PRs introducing breaking changes should make this clear when opening the PR.
+- You should not push commits which commented-out tests.
+  - If pushing a commit for which a test is broken, use the `@test_broken` macro.
+  - Commenting out tests while developing locally is okay, but committing a commented-out test increases the risk of it silently not being run when it should be.
+- You should not squash down commits while review is still on-going.
+  - Squashing commits prevents the reviewer being able to see what commits are added since the last review.
+- You should help **review** your PRs, even though you cannot **approve** your own PRs.
+  - For instance, start the review process by commenting on why certain bits of the code changed, or highlighting places where you would particularly like reviewer feedback.
+
+### Reviewing, Approving and Merging PRs
+
+- PRs must have 1 approval before they are merged.
+- PR authors should not approve their own PRs.
+- PRs should pass CI tests before being merged.
+- PRs by people without merge rights must have approval from someone who has merge rights (who will usually then merge the PR).
+- PRs by people with merge rights must have approval from someone else, who may or may not have merge rights (and then may merge their own PR).
+- PRs by people with merge rights should not be merged by people other than the author (just approved).
+- Review comments should be phrased as questions, as it shows you are open to new ideas.
+  - For instance, “Why did you change this to X? Doesn’t that prevent Y?” rather than “You should not have changed this, it will prevent Y”.
+  Small review suggestions, such as typo fixes, should make use of the `suggested change` feature.
+  - This makes it easier and more likely for all the smaller changes to be made.
+- Reviewers should continue acting as a reviewer until the PR is merged.
 
 ## Styleguides
 
@@ -212,3 +244,5 @@ Use [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/
 ## Attribution
 
 This guide is based on the **contributing-gen**. [Make your own](https://github.com/bttger/contributing-gen)!
+
+With additions from [SciML/ColPrac](https://github.com/SciML/ColPrac).
