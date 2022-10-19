@@ -98,7 +98,10 @@ Depending on how large the project is, you may want to outsource the questioning
 >     this project or the open source license(s) involved.
 > ```
 >
-> The DCO requires a [sign-off](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) message in every commit in your pull requests.
+> We require a [sign-off](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---signoff) message in every commit in your pull requests to signal your agreement with the DCO.
+>
+> Note: contributing code "generated" by artificial intelligence tools, such as [Github Copilot](https://github.com/features/copilot)
+> would be a **violation of the DCO**, as it is known to plagiarize snippets of code, without the possibility of assessing license or copyright compatibility with the current project, nor complying with original license attribution clauses.
 
 ### Reporting Bugs
 
