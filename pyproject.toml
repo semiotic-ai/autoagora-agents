@@ -23,6 +23,12 @@ autoagora-isa = {git = "ssh://git@github.com/semiotic-ai/autoagora-isa.git", rev
 [tool.poetry-dynamic-versioning]
 enable = true
 
+[tool.semantic_release]
+upload_to_repository = false
+version_source = "tag_only"
+build_command = false
+upload_to_release = false
+
 [[tool.poetry.source]]
 name = "isa-artifacts"
 url = "https://us-west1-python.pkg.dev/the-graph-artifacts/isa/simple/"
