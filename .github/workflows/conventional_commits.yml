@@ -11,6 +11,9 @@ jobs:
   conventional-commits-check:
     name: Check conventional commits
     runs-on: ubuntu-latest
+    # Security!
+    # https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+    permissions: read-all
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -20,10 +23,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-          cache: pip
       - name: Install commitizen
         run: pip install commitizen
       - name: commitizen check
         run: cz check --rev-range ${{ github.event.pull_request.base.sha }}..HEAD
-  dco-check:
-    uses: cncf/dcochecker/.github/workflows/dco.yml@main
