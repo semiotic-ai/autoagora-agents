@@ -20,6 +20,10 @@ packages = [
 autoagora-isa = {git = "ssh://git@github.com/semiotic-ai/autoagora-isa.git", rev = "08142a5dcf3cd44c957921d67792d5188d4894ea"}
 
 
+
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^4.0.0"
+
 [tool.poetry-dynamic-versioning]
 enable = true
 
