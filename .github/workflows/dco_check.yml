@@ -28,5 +28,5 @@ jobs:
           # Comma-separated list of emails that should be ignored during DCO checks
           # DCO_CHECK_EXCLUDE_EMAILS: ${{ inputs.exclude-emails }}
         run: |
-          pip3 install -U dco-check
+          pip3 install -U git+https://github.com/aasseman/dco-check.git@pull_request_target_support
           dco-check
