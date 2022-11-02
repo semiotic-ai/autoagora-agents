@@ -16,11 +16,6 @@ classifiers = [
 packages = [
     { include = "autoagora_agents" },
 ]
-[tool.poetry.group.isa.dependencies]
-autoagora-isa = {git = "ssh://git@github.com/semiotic-ai/autoagora-isa.git", rev = "08142a5dcf3cd44c957921d67792d5188d4894ea"}
-
-
-
 [tool.poetry.group.dev.dependencies]
 pytest-cov = "^4.0.0"
 
@@ -32,11 +27,6 @@ upload_to_repository = false
 version_source = "tag_only"
 build_command = false
 upload_to_release = false
-
-[[tool.poetry.source]]
-name = "isa-artifacts"
-url = "https://us-west1-python.pkg.dev/the-graph-artifacts/isa/simple/"
-secondary = true
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
