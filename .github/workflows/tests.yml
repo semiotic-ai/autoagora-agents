@@ -27,7 +27,7 @@ jobs:
           cache: poetry
 
       - name: Install dependencies
-        run: poetry install --without isa
+        run: poetry install
 
       - name: Black formatter
         run: poetry run black --check --diff --color .
