@@ -20,7 +20,7 @@ LOG_PLOT = True
 WINDOW_SIZE = (1000, 1000)
 
 
-def main():
+async def main():
     # Init argparse.
     parser = argparse.ArgumentParser(
         usage="%(prog)s [-c ...] [-i ...] [--show] [--save]",
@@ -194,7 +194,7 @@ def main():
         # X. Visualize the environment.
         if i % args.fast_forward_factor == 0:
             # Plot environment.
-            env_x, env_y = run(environment.generate_plot_data(min_x, max_x))
+            env_x, env_y = await environment.generate_plot_data(min_x, max_x)
             env_plot.setData(env_x, env_y)
 
         # Execute actions for all agents.
@@ -206,10 +206,8 @@ def main():
                 logging.debug("Agent %s action: %s", agent_id, scaled_bids[agent_id])
 
             # 2. Act: set multiplier in the environment.
-            run(
-                environment.set_cost_multiplier(
-                    scaled_bids[agent_id], agent_id=agent_id
-                )
+            await environment.set_cost_multiplier(
+                scaled_bids[agent_id], agent_id=agent_id
             )
 
         # Make a step. (Executes a number of queries in the case of the ISA)
@@ -220,7 +218,7 @@ def main():
             # 3. Get the rewards.
             # Get queries per second for a given .
             queries_per_second[agent_id] += [
-                run(environment.queries_per_second(agent_id=agent_id))
+                await environment.queries_per_second(agent_id=agent_id)
             ]
             # Turn it into "monies".
             monies_per_second = queries_per_second[agent_id][-1] * scaled_bids[agent_id]
@@ -297,7 +295,7 @@ def main():
             for agent_id, (agent_name, agent) in enumerate(agents.items()):
 
                 # Get data.
-                data = run(agent.generate_plot_data(min_x, max_x, logspace=LOG_PLOT))
+                data = await agent.generate_plot_data(min_x, max_x, logspace=LOG_PLOT)
                 agent_x = data.pop("x")
                 agent_y = data["policy"]
                 agents_dist[agent_id].setData(agent_x, agent_y)
@@ -388,4 +386,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run(main())
