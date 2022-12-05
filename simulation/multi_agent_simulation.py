@@ -4,6 +4,7 @@
 import argparse
 import logging
 from asyncio import run
+from typing import Tuple
 
 import ffmpeg
 import numpy as np
@@ -19,6 +20,83 @@ logging.basicConfig(level="WARN", format="%(message)s")
 LOG_PLOT = True
 WINDOW_SIZE = (1000, 1000)
 
+def create_layout(size:Tuple[int,int],title:str,show:bool,antialias:bool=None,foreground=None)-> pg.GraphicsLayoutWidget:
+    """Initialize application and layout container
+
+    Args:
+        size (Tuple[int,int]):(width,height) of the charts window.
+        title (str): Title of charts window.
+        show (bool): Show app window.
+        antialias (Optional[bool], optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
+        foreground (Any, optional): General foreground color (text,ie). Defaults to None.
+    """
+    # Set up PyQtGraph
+    if foreground is not None:
+        pg.setConfigOption("foreground", foreground)
+    if antialias is not None:
+        pg.setConfigOptions(antialias=antialias)
+        
+    pg.mkQApp(title)
+    
+    layout = pg.GraphicsLayoutWidget(show=show, title=title)
+    layout.resize(*size)
+    return layout
+
+def create_chart(
+        layout:pg.GraphicsLayoutWidget,
+        title: str = None,
+        height: int = None,
+        legend_width: int = None,
+        x_label: str = None,
+        x_range: Tuple[float, float] = None,
+        x_log: bool = None,
+        y_label: str = None,
+        y_range: Tuple[float, float] = None,
+        y_log: bool = None) -> pg.PlotItem:
+    """Add a chart with legend for plots as a row
+
+    Args:
+        layout(GraphicsLayoutWidget): Parent layout
+        title (str, optional): Title to display on the top. Defaults to None.
+        height (int, optional): Prefred height. Defaults to None.
+        legend_width (int, optional):Legend width. Defaults to None.
+        x_label (str, optional): Label text to display under x axis. Defaults to None.
+        x_range (Tuple[float,float], optional): Constant range(min,max value) of x axis. Defaults to None.
+        x_log (bool, optional): Use logarithmic scale to display x axis. Defaults to None.
+        y_label (str, optional): Label text to display next to y axis. Defaults to None.
+        y_range (Tuple[float,float], optional): Constant range(min,max value) of y axis. Defaults to None.
+        y_log (bool, optional): Use logarithmic scale for y axis. Defaults to None.
+    Returns:
+        PlotItem: a chart to contain plots
+    """    
+    chart = layout.addPlot(title=title)
+    if height is not None:
+        chart.setPreferredHeight(300)
+    legend = chart.addLegend(offset=None)
+    vb: pg.ViewBox = layout.addViewBox()
+    if legend_width is not None:
+        vb.setFixedWidth(legend_width)
+    legend.setParentItem(vb)
+    legend.anchor((0, 0), (0, 0))
+    chart.setClipToView(True)
+
+    if x_label is not None:
+        chart.setLabel("bottom",x_label)
+    if x_log is not None:
+        chart.setLogMode(x=x_log)
+    if x_range is not None:
+        chart.setXRange(*x_range)
+
+    if y_label is not None:
+        chart.setLabel("left",y_label)
+    if y_log is not None:
+        chart.setLogMode(y=y_log)
+    if y_range is not None:
+        chart.setYRange(*y_range)
+
+    layout.nextRow()
+
+    return chart
 
 async def main():
     # Init argparse.
@@ -39,26 +117,10 @@ async def main():
     min_x = 1e-8
     max_x = 8e-5
 
-    # Set up PyQtGraph
-    pg.setConfigOption("foreground", "white")
-    pg.setConfigOptions(antialias=True)
-    app = pg.mkQApp("Plot")
-    win = pg.GraphicsLayoutWidget(show=not args.save, title="Multi-agent training")
-    win.resize(*WINDOW_SIZE)
+    layout = create_layout(WINDOW_SIZE,"Multi-agent training",not args.save,antialias=True,foreground="white")
+    
+    policy_plot = create_chart(layout,title="time 0",height=300,legend_width=300,x_label= "Price multiplier",y_label="Query rate",x_log=True,y_range=(0,1.3))
 
-    # Create policy plot
-    policy_plot = win.addPlot(title="time 0")
-    policy_plot.setPreferredHeight(300)
-    policy_plot_legend = policy_plot.addLegend(offset=None)
-    policy_plot_vb = (
-        win.addViewBox()
-    )  # Empty UI box to contain the legend outside the plot
-    policy_plot_vb.setFixedWidth(300)
-    policy_plot_legend.setParentItem(policy_plot_vb)
-    policy_plot.setClipToView(True)
-    policy_plot.setLabel("left", "Query rate")
-    policy_plot.setLabel("bottom", "Price multiplier")
-    policy_plot.setLogMode(LOG_PLOT, False)
     # Policy PD
     agents_dist = [
         policy_plot.plot(
@@ -92,19 +154,8 @@ async def main():
         pen=pg.mkPen(color="gray", width=1.5), name="Environment: total query rate"
     )
 
-    policy_plot.setYRange(0, 1.3)
+    query_rate_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Query rate")
 
-    win.nextRow()
-
-    # Create query volume time plot
-    query_rate_plot = win.addPlot()
-    # query_rate_plot.setPreferredHeight(200)
-    query_rate_plot.setLabel("left", "Query rate")
-    query_rate_plot.setLabel("bottom", "Timestep")
-    query_rate_plot_legend = query_rate_plot.addLegend(offset=None)
-    query_rate_plot_vb = win.addViewBox()
-    query_rate_plot_vb.setFixedWidth(300)
-    query_rate_plot_legend.setParentItem(query_rate_plot_vb)
     agent_qps_plots = [
         query_rate_plot.plot(
             pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
@@ -114,18 +165,7 @@ async def main():
     ]
     queries_per_second = [[] for _ in agents]
 
-    win.nextRow()
-
-    # Create total queries (un)served plot
-    total_queries_plot = win.addPlot()
-    # total_queries_plot.setPreferredHeight(200)
-    total_queries_plot.setLabel("left", "Total queries")
-    total_queries_plot.setLabel("bottom", "Timestep")
-    total_queries_legend = total_queries_plot.addLegend(offset=None)
-    total_queries_vb = win.addViewBox()
-    total_queries_vb.setFixedWidth(300)
-    total_queries_legend.setParentItem(total_queries_vb)
-    total_queries_legend.anchor((0, 0), (0, 0))
+    total_queries_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total queries")
 
     total_agent_queries_plots = [
         total_queries_plot.plot(
@@ -142,18 +182,8 @@ async def main():
     total_agent_queries_data = [[] for _ in agents]
     total_unserved_queries_data = []
 
-    win.nextRow()
-
     # Create revenue rate plot
-    revenue_rate_plot = win.addPlot()
-    # revenue_rate_plot.setPreferredHeight(200)
-    revenue_rate_plot.setLabel("left", "Revenue rate")
-    revenue_rate_plot.setLabel("bottom", "Timestep")
-    revenue_rate_legend = revenue_rate_plot.addLegend(offset=None)
-    revenue_rate_vb = win.addViewBox()
-    revenue_rate_vb.setFixedWidth(300)
-    revenue_rate_legend.setParentItem(revenue_rate_vb)
-    revenue_rate_legend.anchor((0, 0), (0, 0))
+    revenue_rate_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Revenue rate")
 
     revenue_rate_plots = [
         revenue_rate_plot.plot(
@@ -165,18 +195,8 @@ async def main():
 
     revenue_rate_data = [[] for _ in agents]
 
-    win.nextRow()
-
     # Create total revenue plot
-    total_revenue_plot = win.addPlot()
-    # total_revenue_plot.setPreferredHeight(200)
-    total_revenue_plot.setLabel("left", "Total revenue")
-    total_revenue_plot.setLabel("bottom", "Timestep")
-    total_revenue_legend = total_revenue_plot.addLegend(offset=None)
-    total_revenue_vb = win.addViewBox()
-    total_revenue_vb.setFixedWidth(300)
-    total_revenue_legend.setParentItem(total_revenue_vb)
-    total_revenue_legend.anchor((0, 0), (0, 0))
+    total_revenue_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total revenue")
 
     total_revenue_plots = [
         total_revenue_plot.plot(
@@ -348,7 +368,7 @@ async def main():
                         .run_async(pipe_stdin=True)
                     )
 
-                qimage = win.grab().toImage()
+                qimage = layout.grab().toImage()
                 qimage = qimage.convertToFormat(
                     QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
                 )
@@ -371,14 +391,14 @@ async def main():
                 ffmpeg_process.stdin.write(qimage.constBits().tobytes())
 
         else:  # Show
-            if win.isHidden():
+            if layout.isHidden():
                 break
 
     if ffmpeg_process:
         ffmpeg_process.stdin.close()
         ffmpeg_process.wait()
 
-    if win.isHidden():
+    if layout.isHidden():
         pg.exit()
     else:
         # Keep window open
