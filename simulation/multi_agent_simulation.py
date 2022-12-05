@@ -20,7 +20,14 @@ logging.basicConfig(level="WARN", format="%(message)s")
 LOG_PLOT = True
 WINDOW_SIZE = (1000, 1000)
 
-def create_layout(size:Tuple[int,int],title:str,show:bool,antialias:bool=None,foreground=None)-> pg.GraphicsLayoutWidget:
+
+def create_layout(
+    size: Tuple[int, int],
+    title: str,
+    show: bool,
+    antialias: bool = None,
+    foreground=None,
+) -> pg.GraphicsLayoutWidget:
     """Initialize application and layout container
 
     Args:
@@ -35,24 +42,26 @@ def create_layout(size:Tuple[int,int],title:str,show:bool,antialias:bool=None,fo
         pg.setConfigOption("foreground", foreground)
     if antialias is not None:
         pg.setConfigOptions(antialias=antialias)
-        
+
     pg.mkQApp(title)
-    
+
     layout = pg.GraphicsLayoutWidget(show=show, title=title)
     layout.resize(*size)
     return layout
 
+
 def create_chart(
-        layout:pg.GraphicsLayoutWidget,
-        title: str = None,
-        height: int = None,
-        legend_width: int = None,
-        x_label: str = None,
-        x_range: Tuple[float, float] = None,
-        x_log: bool = None,
-        y_label: str = None,
-        y_range: Tuple[float, float] = None,
-        y_log: bool = None) -> pg.PlotItem:
+    layout: pg.GraphicsLayoutWidget,
+    title: str = None,
+    height: int = None,
+    legend_width: int = None,
+    x_label: str = None,
+    x_range: Tuple[float, float] = None,
+    x_log: bool = None,
+    y_label: str = None,
+    y_range: Tuple[float, float] = None,
+    y_log: bool = None,
+) -> pg.PlotItem:
     """Add a chart with legend for plots as a row
 
     Args:
@@ -68,7 +77,7 @@ def create_chart(
         y_log (bool, optional): Use logarithmic scale for y axis. Defaults to None.
     Returns:
         PlotItem: a chart to contain plots
-    """    
+    """
     chart = layout.addPlot(title=title)
     if height is not None:
         chart.setPreferredHeight(300)
@@ -81,14 +90,14 @@ def create_chart(
     chart.setClipToView(True)
 
     if x_label is not None:
-        chart.setLabel("bottom",x_label)
+        chart.setLabel("bottom", x_label)
     if x_log is not None:
         chart.setLogMode(x=x_log)
     if x_range is not None:
         chart.setXRange(*x_range)
 
     if y_label is not None:
-        chart.setLabel("left",y_label)
+        chart.setLabel("left", y_label)
     if y_log is not None:
         chart.setLogMode(y=y_log)
     if y_range is not None:
@@ -98,7 +107,10 @@ def create_chart(
 
     return chart
 
-def add_line_plot(chart:pg.PlotItem,name: str,color = None,width: float = None,style = None)-> pg.PlotDataItem:
+
+def add_line_plot(
+    chart: pg.PlotItem, name: str, color=None, width: float = None, style=None
+) -> pg.PlotDataItem:
     """Adds a line plot to the chart.
 
     Args:
@@ -114,35 +126,44 @@ def add_line_plot(chart:pg.PlotItem,name: str,color = None,width: float = None,s
         config["width"] = width
     if style is not None:
         config["style"] = style
-        
-    pen = pg.mkPen(**config)
-    return chart.plot(name=name,pen=pen)
 
-def add_scatter_plot(chart:pg.PlotItem,name: str,size: float = None,color = None, symbol = None, border = None)-> pg.PlotDataItem:    
+    pen = pg.mkPen(**config)
+    return chart.plot(name=name, pen=pen)
+
+
+def add_scatter_plot(
+    chart: pg.PlotItem,
+    name: str,
+    size: float = None,
+    color=None,
+    symbol=None,
+    border=None,
+) -> pg.PlotDataItem:
     """Adds a scatter plot to the chart.
-    
+
     Args:
         name (str): Name (legend title) of the plot
-        size (float, optional): Size of the marker symbol. Defaults to None. 
-        color (Any, optional): Color to fill the marker symbol. Defaults to None. 
+        size (float, optional): Size of the marker symbol. Defaults to None.
+        color (Any, optional): Color to fill the marker symbol. Defaults to None.
         symbol (Any, optional): Shape of the marker symbol. Defaults to None.
         border (Any, optional): Pen to draw border around the marker symbol. Defaults to None.
     """
     config = {}
-    
+
     if size is not None:
         config["symbolSize"] = size
-    
+
     if color is not None:
         config["symbolBrush"] = color
-        
+
     if symbol is not None:
         config["symbol"] = symbol
-    
+
     if border is not None:
         config["symbolPen"] = border
-        
-    return chart.plot(name=name,pen=None,**config)
+
+    return chart.plot(name=name, pen=None, **config)
+
 
 async def main():
     # Init argparse.
@@ -163,49 +184,133 @@ async def main():
     min_x = 1e-8
     max_x = 8e-5
 
-    layout = create_layout(WINDOW_SIZE,"Multi-agent training",not args.save,antialias=True,foreground="white")
-    
-    policy_chart = create_chart(layout,title="time 0",height=300,legend_width=300,x_label= "Price multiplier",y_label="Query rate",x_log=True,y_range=(0,1.3))
+    layout = create_layout(
+        WINDOW_SIZE,
+        "Multi-agent training",
+        not args.save,
+        antialias=True,
+        foreground="white",
+    )
+
+    policy_chart = create_chart(
+        layout,
+        title="time 0",
+        height=300,
+        legend_width=300,
+        x_label="Price multiplier",
+        y_label="Query rate",
+        x_log=True,
+        y_range=(0, 1.3),
+    )
 
     # Policy PD
-    agents_dist = [add_line_plot(policy_chart,f"Agent {agent_name}: policy",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
+    agents_dist = [
+        add_line_plot(
+            policy_chart,
+            f"Agent {agent_name}: policy",
+            color=(i, len(agents) + 1),
+            width=1.5,
+        )
+        for i, agent_name in enumerate(agents.keys())
+    ]
 
     # Initial policy PD
-    agents_init_dist = [add_line_plot(policy_chart,f"Agent {agent_name}: init policy",color=(i, len(agents) + 1), width=1.5,style=QtCore.Qt.DotLine) for i, agent_name in enumerate(agents.keys())]
+    agents_init_dist = [
+        add_line_plot(
+            policy_chart,
+            f"Agent {agent_name}: init policy",
+            color=(i, len(agents) + 1),
+            width=1.5,
+            style=QtCore.Qt.DotLine,
+        )
+        for i, agent_name in enumerate(agents.keys())
+    ]
 
     # This is a line plot with invisible line and visible data points.
     # Easier to scale with the rest of the plot than with using a ScatterPlot.
-    agents_scatter_qps = [add_scatter_plot(policy_chart,f"Agent {agent_name}: query rate",color=(i, len(agents) + 1),border="w")  for i, agent_name in enumerate(agents.keys())]
+    agents_scatter_qps = [
+        add_scatter_plot(
+            policy_chart,
+            f"Agent {agent_name}: query rate",
+            color=(i, len(agents) + 1),
+            border="w",
+        )
+        for i, agent_name in enumerate(agents.keys())
+    ]
 
     # Environment QPS
-    env_plot = add_line_plot(policy_chart,"Environment: total query rate",color="grey", width=1.5)   
+    env_plot = add_line_plot(
+        policy_chart, "Environment: total query rate", color="grey", width=1.5
+    )
 
-    query_rate_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Query rate")
+    query_rate_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Query rate"
+    )
 
-    agent_qps_plots = [add_line_plot(query_rate_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
+    agent_qps_plots = [
+        add_line_plot(
+            query_rate_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
+        )
+        for i, agent_name in enumerate(agents.keys())
+    ]
 
     queries_per_second = [[] for _ in agents]
 
-    total_queries_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total queries")
+    total_queries_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Total queries"
+    )
 
-    total_agent_queries_plots = [add_line_plot(total_queries_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
+    total_agent_queries_plots = [
+        add_line_plot(
+            total_queries_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
+        )
+        for i, agent_name in enumerate(agents.keys())
+    ]
 
-    total_unserved_queries_plot = add_line_plot(total_queries_chart,"Dropped",color=(len(agents), len(agents) + 1), width=1.5)   
+    total_unserved_queries_plot = add_line_plot(
+        total_queries_chart, "Dropped", color=(len(agents), len(agents) + 1), width=1.5
+    )
 
     total_agent_queries_data = [[] for _ in agents]
     total_unserved_queries_data = []
 
     # Create revenue rate plot
-    revenue_rate_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Revenue rate")
+    revenue_rate_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Revenue rate"
+    )
 
-    revenue_rate_plots = [add_line_plot(revenue_rate_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
+    revenue_rate_plots = [
+        add_line_plot(
+            revenue_rate_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
+        )
+        for i, agent_name in enumerate(agents.keys())
+    ]
 
     revenue_rate_data = [[] for _ in agents]
 
     # Create total revenue plot
-    total_revenue_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total revenue")
+    total_revenue_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Total revenue"
+    )
 
-    total_revenue_plots = [add_line_plot(total_revenue_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
+    total_revenue_plots = [
+        add_line_plot(
+            total_revenue_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
+        )
+        for i, agent_name in enumerate(agents.keys())
+    ]
 
     total_revenue_data = [[] for _ in agents]
 
