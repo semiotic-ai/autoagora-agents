@@ -4,10 +4,9 @@
 import argparse
 import logging
 from asyncio import run
-from typing import Tuple
+from typing import Optional, Tuple
 
 import ffmpeg
-import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
@@ -25,7 +24,7 @@ def create_layout(
     size: Tuple[int, int],
     title: str,
     show: bool,
-    antialias: bool = None,
+    antialias: Optional[bool] = None,
     foreground=None,
 ) -> pg.GraphicsLayoutWidget:
     """Initialize application and layout container
@@ -52,15 +51,15 @@ def create_layout(
 
 def create_chart(
     layout: pg.GraphicsLayoutWidget,
-    title: str = None,
-    height: int = None,
-    legend_width: int = None,
-    x_label: str = None,
-    x_range: Tuple[float, float] = None,
-    x_log: bool = None,
-    y_label: str = None,
-    y_range: Tuple[float, float] = None,
-    y_log: bool = None,
+    title: Optional[str] = None,
+    height: Optional[int] = None,
+    legend_width: Optional[int] = None,
+    x_label: Optional[str] = None,
+    x_range: Optional[Tuple[float, float]] = None,
+    x_log: Optional[bool] = None,
+    y_label: Optional[str] = None,
+    y_range: Optional[Tuple[float, float]] = None,
+    y_log: Optional[bool] = None,
 ) -> pg.PlotItem:
     """Add a chart with legend for plots as a row
 
@@ -109,7 +108,7 @@ def create_chart(
 
 
 def add_line_plot(
-    chart: pg.PlotItem, name: str, color=None, width: float = None, style=None
+    chart: pg.PlotItem, name: str, color=None, width: Optional[float] = None, style=None
 ) -> pg.PlotDataItem:
     """Adds a line plot to the chart.
 
@@ -134,7 +133,7 @@ def add_line_plot(
 def add_scatter_plot(
     chart: pg.PlotItem,
     name: str,
-    size: float = None,
+    size: Optional[float] = None,
     color=None,
     symbol=None,
     border=None,
@@ -221,7 +220,7 @@ async def main():
             f"Agent {agent_name}: init policy",
             color=(i, len(agents) + 1),
             width=1.5,
-            style=QtCore.Qt.DotLine,
+            style=QtCore.Qt.DotLine,  # type: ignore
         )
         for i, agent_name in enumerate(agents.keys())
     ]
