@@ -98,6 +98,52 @@ def create_chart(
 
     return chart
 
+def add_line_plot(chart:pg.PlotItem,name: str,color = None,width: float = None,style = None)-> pg.PlotDataItem:
+    """Adds a line plot to the chart.
+
+    Args:
+        name (str): Name (legend title) of the plot
+        color (Any, optional): Line color of the plot. Defaults to None.
+        width (float, optional): Width of the plot line. Defaults to None.
+        style (Any, optional): Style of the plot line. Defaults to None.
+    """
+    config = {}
+    if color is not None:
+        config["color"] = color
+    if width is not None:
+        config["width"] = width
+    if style is not None:
+        config["style"] = style
+        
+    pen = pg.mkPen(**config)
+    return chart.plot(name=name,pen=pen)
+
+def add_scatter_plot(chart:pg.PlotItem,name: str,size: float = None,color = None, symbol = None, border = None)-> pg.PlotDataItem:    
+    """Adds a scatter plot to the chart.
+    
+    Args:
+        name (str): Name (legend title) of the plot
+        size (float, optional): Size of the marker symbol. Defaults to None. 
+        color (Any, optional): Color to fill the marker symbol. Defaults to None. 
+        symbol (Any, optional): Shape of the marker symbol. Defaults to None.
+        border (Any, optional): Pen to draw border around the marker symbol. Defaults to None.
+    """
+    config = {}
+    
+    if size is not None:
+        config["symbolSize"] = size
+    
+    if color is not None:
+        config["symbolBrush"] = color
+        
+    if symbol is not None:
+        config["symbol"] = symbol
+    
+    if border is not None:
+        config["symbolPen"] = border
+        
+    return chart.plot(name=name,pen=None,**config)
+
 async def main():
     # Init argparse.
     parser = argparse.ArgumentParser(
@@ -119,92 +165,47 @@ async def main():
 
     layout = create_layout(WINDOW_SIZE,"Multi-agent training",not args.save,antialias=True,foreground="white")
     
-    policy_plot = create_chart(layout,title="time 0",height=300,legend_width=300,x_label= "Price multiplier",y_label="Query rate",x_log=True,y_range=(0,1.3))
+    policy_chart = create_chart(layout,title="time 0",height=300,legend_width=300,x_label= "Price multiplier",y_label="Query rate",x_log=True,y_range=(0,1.3))
 
     # Policy PD
-    agents_dist = [
-        policy_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}: policy",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+    agents_dist = [add_line_plot(policy_chart,f"Agent {agent_name}: policy",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
 
     # Initial policy PD
-    agents_init_dist = [
-        policy_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5, style=QtCore.Qt.DotLine),  # type: ignore
-            name=f"Agent {agent_name}: init policy",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+    agents_init_dist = [add_line_plot(policy_chart,f"Agent {agent_name}: init policy",color=(i, len(agents) + 1), width=1.5,style=QtCore.Qt.DotLine) for i, agent_name in enumerate(agents.keys())]
+
     # This is a line plot with invisible line and visible data points.
     # Easier to scale with the rest of the plot than with using a ScatterPlot.
-    agents_scatter_qps = [
-        policy_plot.plot(
-            pen=pg.mkPen(color=(0, 0, 0, 0), width=0),  # type: ignore
-            name=f"Agent {agent_name}: query rate",
-            symbolBrush=(i, len(agents) + 1),
-            symbolPen="w",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+    agents_scatter_qps = [add_scatter_plot(policy_chart,f"Agent {agent_name}: query rate",color=(i, len(agents) + 1),border="w")  for i, agent_name in enumerate(agents.keys())]
+
     # Environment QPS
-    env_plot = policy_plot.plot(
-        pen=pg.mkPen(color="gray", width=1.5), name="Environment: total query rate"
-    )
+    env_plot = add_line_plot(policy_chart,"Environment: total query rate",color="grey", width=1.5)   
 
-    query_rate_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Query rate")
+    query_rate_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Query rate")
 
-    agent_qps_plots = [
-        query_rate_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+    agent_qps_plots = [add_line_plot(query_rate_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
+
     queries_per_second = [[] for _ in agents]
 
-    total_queries_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total queries")
+    total_queries_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total queries")
 
-    total_agent_queries_plots = [
-        total_queries_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
-    total_unserved_queries_plot = total_queries_plot.plot(
-        pen=pg.mkPen(color=(len(agents), len(agents) + 1), width=1.5),
-        name=f"Dropped",
-    )
+    total_agent_queries_plots = [add_line_plot(total_queries_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
+
+    total_unserved_queries_plot = add_line_plot(total_queries_chart,"Dropped",color=(len(agents), len(agents) + 1), width=1.5)   
 
     total_agent_queries_data = [[] for _ in agents]
     total_unserved_queries_data = []
 
     # Create revenue rate plot
-    revenue_rate_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Revenue rate")
+    revenue_rate_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Revenue rate")
 
-    revenue_rate_plots = [
-        revenue_rate_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+    revenue_rate_plots = [add_line_plot(revenue_rate_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
 
     revenue_rate_data = [[] for _ in agents]
 
     # Create total revenue plot
-    total_revenue_plot = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total revenue")
+    total_revenue_chart = create_chart(layout,legend_width=300,x_label= "Timestep",y_label="Total revenue")
 
-    total_revenue_plots = [
-        total_revenue_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+    total_revenue_plots = [add_line_plot(total_revenue_chart,f"Agent {agent_name}",color=(i, len(agents) + 1), width=1.5)  for i, agent_name in enumerate(agents.keys())]
 
     total_revenue_data = [[] for _ in agents]
 
@@ -347,7 +348,7 @@ async def main():
             # Total queries unserved
             total_unserved_queries_plot.setData(total_unserved_queries_data)
 
-            policy_plot.setTitle(f"time {i}")
+            policy_chart.setTitle(f"time {i}")
 
         QtWidgets.QApplication.processEvents()  # type: ignore
 
