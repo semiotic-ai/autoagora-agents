@@ -4,9 +4,9 @@
 import argparse
 import logging
 from asyncio import run
+from typing import Optional, Tuple
 
 import ffmpeg
-import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
@@ -18,6 +18,150 @@ logging.basicConfig(level="WARN", format="%(message)s")
 
 LOG_PLOT = True
 WINDOW_SIZE = (1000, 1000)
+
+
+def create_layout(
+    size: Tuple[int, int],
+    title: str,
+    show: bool,
+    antialias: Optional[bool] = None,
+    foreground=None,
+) -> pg.GraphicsLayoutWidget:
+    """Initialize application and layout container
+
+    Args:
+        size (Tuple[int,int]):(width,height) of the charts window.
+        title (str): Title of charts window.
+        show (bool): Show app window.
+        antialias (Optional[bool], optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
+        foreground (Any, optional): General foreground color (text,ie). Defaults to None.
+    """
+    # Set up PyQtGraph
+    if foreground is not None:
+        pg.setConfigOption("foreground", foreground)
+    if antialias is not None:
+        pg.setConfigOptions(antialias=antialias)
+
+    pg.mkQApp(title)
+
+    layout = pg.GraphicsLayoutWidget(show=show, title=title)
+    layout.resize(*size)
+    return layout
+
+
+def create_chart(
+    layout: pg.GraphicsLayoutWidget,
+    title: Optional[str] = None,
+    height: Optional[int] = None,
+    legend_width: Optional[int] = None,
+    x_label: Optional[str] = None,
+    x_range: Optional[Tuple[float, float]] = None,
+    x_log: Optional[bool] = None,
+    y_label: Optional[str] = None,
+    y_range: Optional[Tuple[float, float]] = None,
+    y_log: Optional[bool] = None,
+) -> pg.PlotItem:
+    """Add a chart with legend for plots as a row
+
+    Args:
+        layout(GraphicsLayoutWidget): Parent layout
+        title (str, optional): Title to display on the top. Defaults to None.
+        height (int, optional): Prefred height. Defaults to None.
+        legend_width (int, optional):Legend width. Defaults to None.
+        x_label (str, optional): Label text to display under x axis. Defaults to None.
+        x_range (Tuple[float,float], optional): Constant range(min,max value) of x axis. Defaults to None.
+        x_log (bool, optional): Use logarithmic scale to display x axis. Defaults to None.
+        y_label (str, optional): Label text to display next to y axis. Defaults to None.
+        y_range (Tuple[float,float], optional): Constant range(min,max value) of y axis. Defaults to None.
+        y_log (bool, optional): Use logarithmic scale for y axis. Defaults to None.
+    Returns:
+        PlotItem: a chart to contain plots
+    """
+    chart = layout.addPlot(title=title)
+    if height is not None:
+        chart.setPreferredHeight(300)
+    legend = chart.addLegend(offset=None)
+    vb: pg.ViewBox = layout.addViewBox()
+    if legend_width is not None:
+        vb.setFixedWidth(legend_width)
+    legend.setParentItem(vb)
+    legend.anchor((0, 0), (0, 0))
+    chart.setClipToView(True)
+
+    if x_label is not None:
+        chart.setLabel("bottom", x_label)
+    if x_log is not None:
+        chart.setLogMode(x=x_log)
+    if x_range is not None:
+        chart.setXRange(*x_range)
+
+    if y_label is not None:
+        chart.setLabel("left", y_label)
+    if y_log is not None:
+        chart.setLogMode(y=y_log)
+    if y_range is not None:
+        chart.setYRange(*y_range)
+
+    layout.nextRow()
+
+    return chart
+
+
+def add_line_plot(
+    chart: pg.PlotItem, name: str, color=None, width: Optional[float] = None, style=None
+) -> pg.PlotDataItem:
+    """Adds a line plot to the chart.
+
+    Args:
+        name (str): Name (legend title) of the plot
+        color (Any, optional): Line color of the plot. Defaults to None.
+        width (float, optional): Width of the plot line. Defaults to None.
+        style (Any, optional): Style of the plot line. Defaults to None.
+    """
+    config = {}
+    if color is not None:
+        config["color"] = color
+    if width is not None:
+        config["width"] = width
+    if style is not None:
+        config["style"] = style
+
+    pen = pg.mkPen(**config)
+    return chart.plot(name=name, pen=pen)
+
+
+def add_scatter_plot(
+    chart: pg.PlotItem,
+    name: str,
+    size: Optional[float] = None,
+    color=None,
+    symbol=None,
+    border=None,
+) -> pg.PlotDataItem:
+    """Adds a scatter plot to the chart.
+
+    Args:
+        name (str): Name (legend title) of the plot
+        size (float, optional): Size of the marker symbol. Defaults to None.
+        color (Any, optional): Color to fill the marker symbol. Defaults to None.
+        symbol (Any, optional): Shape of the marker symbol. Defaults to None.
+        border (Any, optional): Pen to draw border around the marker symbol. Defaults to None.
+    """
+    config = {}
+
+    if size is not None:
+        config["symbolSize"] = size
+
+    if color is not None:
+        config["symbolBrush"] = color
+
+    if symbol is not None:
+        config["symbol"] = symbol
+
+    if border is not None:
+        config["symbolPen"] = border
+
+    return chart.plot(name=name, pen=None, **config)
 
 
 async def main():
@@ -39,149 +183,130 @@ async def main():
     min_x = 1e-8
     max_x = 8e-5
 
-    # Set up PyQtGraph
-    pg.setConfigOption("foreground", "white")
-    pg.setConfigOptions(antialias=True)
-    app = pg.mkQApp("Plot")
-    win = pg.GraphicsLayoutWidget(show=not args.save, title="Multi-agent training")
-    win.resize(*WINDOW_SIZE)
+    layout = create_layout(
+        WINDOW_SIZE,
+        "Multi-agent training",
+        not args.save,
+        antialias=True,
+        foreground="white",
+    )
 
-    # Create policy plot
-    policy_plot = win.addPlot(title="time 0")
-    policy_plot.setPreferredHeight(300)
-    policy_plot_legend = policy_plot.addLegend(offset=None)
-    policy_plot_vb = (
-        win.addViewBox()
-    )  # Empty UI box to contain the legend outside the plot
-    policy_plot_vb.setFixedWidth(300)
-    policy_plot_legend.setParentItem(policy_plot_vb)
-    policy_plot.setClipToView(True)
-    policy_plot.setLabel("left", "Query rate")
-    policy_plot.setLabel("bottom", "Price multiplier")
-    policy_plot.setLogMode(LOG_PLOT, False)
+    policy_chart = create_chart(
+        layout,
+        title="time 0",
+        height=300,
+        legend_width=300,
+        x_label="Price multiplier",
+        y_label="Query rate",
+        x_log=True,
+        y_range=(0, 1.3),
+    )
+
     # Policy PD
     agents_dist = [
-        policy_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}: policy",
+        add_line_plot(
+            policy_chart,
+            f"Agent {agent_name}: policy",
+            color=(i, len(agents) + 1),
+            width=1.5,
         )
         for i, agent_name in enumerate(agents.keys())
     ]
 
     # Initial policy PD
     agents_init_dist = [
-        policy_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5, style=QtCore.Qt.DotLine),  # type: ignore
-            name=f"Agent {agent_name}: init policy",
+        add_line_plot(
+            policy_chart,
+            f"Agent {agent_name}: init policy",
+            color=(i, len(agents) + 1),
+            width=1.5,
+            style=QtCore.Qt.DotLine,  # type: ignore
         )
         for i, agent_name in enumerate(agents.keys())
     ]
+
     # This is a line plot with invisible line and visible data points.
     # Easier to scale with the rest of the plot than with using a ScatterPlot.
     agents_scatter_qps = [
-        policy_plot.plot(
-            pen=pg.mkPen(color=(0, 0, 0, 0), width=0),  # type: ignore
-            name=f"Agent {agent_name}: query rate",
-            symbolBrush=(i, len(agents) + 1),
-            symbolPen="w",
+        add_scatter_plot(
+            policy_chart,
+            f"Agent {agent_name}: query rate",
+            color=(i, len(agents) + 1),
+            border="w",
         )
         for i, agent_name in enumerate(agents.keys())
     ]
+
     # Environment QPS
-    env_plot = policy_plot.plot(
-        pen=pg.mkPen(color="gray", width=1.5), name="Environment: total query rate"
+    env_plot = add_line_plot(
+        policy_chart, "Environment: total query rate", color="grey", width=1.5
     )
 
-    policy_plot.setYRange(0, 1.3)
+    query_rate_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Query rate"
+    )
 
-    win.nextRow()
-
-    # Create query volume time plot
-    query_rate_plot = win.addPlot()
-    # query_rate_plot.setPreferredHeight(200)
-    query_rate_plot.setLabel("left", "Query rate")
-    query_rate_plot.setLabel("bottom", "Timestep")
-    query_rate_plot_legend = query_rate_plot.addLegend(offset=None)
-    query_rate_plot_vb = win.addViewBox()
-    query_rate_plot_vb.setFixedWidth(300)
-    query_rate_plot_legend.setParentItem(query_rate_plot_vb)
     agent_qps_plots = [
-        query_rate_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
+        add_line_plot(
+            query_rate_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
         )
         for i, agent_name in enumerate(agents.keys())
     ]
+
     queries_per_second = [[] for _ in agents]
 
-    win.nextRow()
-
-    # Create total queries (un)served plot
-    total_queries_plot = win.addPlot()
-    # total_queries_plot.setPreferredHeight(200)
-    total_queries_plot.setLabel("left", "Total queries")
-    total_queries_plot.setLabel("bottom", "Timestep")
-    total_queries_legend = total_queries_plot.addLegend(offset=None)
-    total_queries_vb = win.addViewBox()
-    total_queries_vb.setFixedWidth(300)
-    total_queries_legend.setParentItem(total_queries_vb)
-    total_queries_legend.anchor((0, 0), (0, 0))
+    total_queries_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Total queries"
+    )
 
     total_agent_queries_plots = [
-        total_queries_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
+        add_line_plot(
+            total_queries_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
         )
         for i, agent_name in enumerate(agents.keys())
     ]
-    total_unserved_queries_plot = total_queries_plot.plot(
-        pen=pg.mkPen(color=(len(agents), len(agents) + 1), width=1.5),
-        name=f"Dropped",
+
+    total_unserved_queries_plot = add_line_plot(
+        total_queries_chart, "Dropped", color=(len(agents), len(agents) + 1), width=1.5
     )
 
     total_agent_queries_data = [[] for _ in agents]
     total_unserved_queries_data = []
 
-    win.nextRow()
-
     # Create revenue rate plot
-    revenue_rate_plot = win.addPlot()
-    # revenue_rate_plot.setPreferredHeight(200)
-    revenue_rate_plot.setLabel("left", "Revenue rate")
-    revenue_rate_plot.setLabel("bottom", "Timestep")
-    revenue_rate_legend = revenue_rate_plot.addLegend(offset=None)
-    revenue_rate_vb = win.addViewBox()
-    revenue_rate_vb.setFixedWidth(300)
-    revenue_rate_legend.setParentItem(revenue_rate_vb)
-    revenue_rate_legend.anchor((0, 0), (0, 0))
+    revenue_rate_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Revenue rate"
+    )
 
     revenue_rate_plots = [
-        revenue_rate_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
+        add_line_plot(
+            revenue_rate_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
         )
         for i, agent_name in enumerate(agents.keys())
     ]
 
     revenue_rate_data = [[] for _ in agents]
 
-    win.nextRow()
-
     # Create total revenue plot
-    total_revenue_plot = win.addPlot()
-    # total_revenue_plot.setPreferredHeight(200)
-    total_revenue_plot.setLabel("left", "Total revenue")
-    total_revenue_plot.setLabel("bottom", "Timestep")
-    total_revenue_legend = total_revenue_plot.addLegend(offset=None)
-    total_revenue_vb = win.addViewBox()
-    total_revenue_vb.setFixedWidth(300)
-    total_revenue_legend.setParentItem(total_revenue_vb)
-    total_revenue_legend.anchor((0, 0), (0, 0))
+    total_revenue_chart = create_chart(
+        layout, legend_width=300, x_label="Timestep", y_label="Total revenue"
+    )
 
     total_revenue_plots = [
-        total_revenue_plot.plot(
-            pen=pg.mkPen(color=(i, len(agents) + 1), width=1.5),
-            name=f"Agent {agent_name}",
+        add_line_plot(
+            total_revenue_chart,
+            f"Agent {agent_name}",
+            color=(i, len(agents) + 1),
+            width=1.5,
         )
         for i, agent_name in enumerate(agents.keys())
     ]
@@ -327,7 +452,7 @@ async def main():
             # Total queries unserved
             total_unserved_queries_plot.setData(total_unserved_queries_data)
 
-            policy_plot.setTitle(f"time {i}")
+            policy_chart.setTitle(f"time {i}")
 
         QtWidgets.QApplication.processEvents()  # type: ignore
 
@@ -348,7 +473,7 @@ async def main():
                         .run_async(pipe_stdin=True)
                     )
 
-                qimage = win.grab().toImage()
+                qimage = layout.grab().toImage()
                 qimage = qimage.convertToFormat(
                     QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
                 )
@@ -371,14 +496,14 @@ async def main():
                 ffmpeg_process.stdin.write(qimage.constBits().tobytes())
 
         else:  # Show
-            if win.isHidden():
+            if layout.isHidden():
                 break
 
     if ffmpeg_process:
         ffmpeg_process.stdin.close()
         ffmpeg_process.wait()
 
-    if win.isHidden():
+    if layout.isHidden():
         pg.exit()
     else:
         # Keep window open
