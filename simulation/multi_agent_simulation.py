@@ -4,6 +4,7 @@
 import argparse
 import logging
 from asyncio import run
+from subprocess import Popen
 from typing import Optional, Tuple
 
 import ffmpeg
@@ -162,6 +163,85 @@ def add_scatter_plot(
         config["symbolPen"] = border
 
     return chart.plot(name=name, pen=None, **config)
+
+
+def create_video_process(
+    file_name: str,
+    size: Tuple[int, int],
+    codec: str = "libx264",
+    pixel_format: str = "yuv420p",
+) -> Popen:
+    """Creates a ffmpeg video process which accepts input from stdin.(NA in windows)
+
+    Args:
+        file_name (str): name of the file to save encoded video ouput
+        size (Tuple[int,int]): Size (width,height) of the video frame
+        codec (str, optional): Codec name to be used for encoding. Defaults to "libx264".
+        pixel_format (str, optional): Ouput pixel format. Defaults to "yuv420p".
+
+    Returns:
+        Process: Asyncronious sub process listening stdin for encoding to the file.
+    """
+    process = (
+        ffmpeg.input(
+            "pipe:",
+            format="rawvideo",
+            pix_fmt="rgb24",
+            s=f"{size[0]}x{size[1]}",
+        )
+        .output(file_name, vcodec=codec, pix_fmt=pixel_format)
+        .overwrite_output()
+        .run_async(pipe_stdin=True)
+    )
+    return process
+
+
+def render_video_frame(
+    video_process: Popen, layout: pg.GraphicsLayoutWidget, size: Tuple[int, int]
+):
+    """Renders a frame by capturing plots drawn on the layout.
+    Re-scales if required based on the size.
+
+    Args:
+        video_process (Process): Video (ffmpeg) sub process
+        layout (pg.GraphicsLayoutWidget): Layout to capture frame
+        size (Tuple[int,int]): Output size defined while creating the video process.
+    """
+
+    qimage = layout.grab().toImage()
+
+    qimage = qimage.convertToFormat(
+        QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
+    )
+
+    # May have to rescale (HiDPI displays, etc)
+    if (qimage.width(), qimage.height()) != size:
+        qimage = (
+            QtGui.QPixmap.fromImage(qimage)  # type: ignore
+            .scaled(
+                size[0],
+                size[1],
+                mode=QtCore.Qt.TransformationMode.SmoothTransformation,  # type: ignore
+            )
+            .toImage()
+            .convertToFormat(
+                QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
+            )
+        )
+
+    video_process.stdin.write(  # pyright: ignore [reportOptionalMemberAccess]
+        qimage.constBits().tobytes()
+    )
+
+
+def close_video_process(video_process: Popen):
+    """Waits until encoding sub process is finished data in the stdin
+
+    Args:
+        video_process (Process): Vide (ffmpeg) sub process
+    """
+    video_process.stdin.close()  # pyright: ignore [reportOptionalMemberAccess]
+    video_process.wait()
 
 
 async def main():
@@ -461,47 +541,16 @@ async def main():
                 if not ffmpeg_process:
                     # Start ffmpeg to save video
                     FILENAME = f"{args.config}.mp4"
-                    ffmpeg_process = (
-                        ffmpeg.input(
-                            "pipe:",
-                            format="rawvideo",
-                            pix_fmt="rgb24",
-                            s=f"{WINDOW_SIZE[0]}x{WINDOW_SIZE[1]}",
-                        )
-                        .output(FILENAME, vcodec="libx264", pix_fmt="yuv420p")
-                        .overwrite_output()
-                        .run_async(pipe_stdin=True)
-                    )
+                    ffmpeg_process = create_video_process(FILENAME, WINDOW_SIZE)
 
-                qimage = layout.grab().toImage()
-                qimage = qimage.convertToFormat(
-                    QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
-                )
-
-                # May have to rescale (HiDPI displays, etc)
-                if (qimage.width(), qimage.height()) != WINDOW_SIZE:
-                    qimage = (
-                        QtGui.QPixmap.fromImage(qimage)  # type: ignore
-                        .scaled(
-                            WINDOW_SIZE[0],
-                            WINDOW_SIZE[1],
-                            mode=QtCore.Qt.TransformationMode.SmoothTransformation,  # type: ignore
-                        )
-                        .toImage()
-                        .convertToFormat(
-                            QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
-                        )
-                    )
-
-                ffmpeg_process.stdin.write(qimage.constBits().tobytes())
+                render_video_frame(ffmpeg_process, layout, WINDOW_SIZE)
 
         else:  # Show
             if layout.isHidden():
                 break
 
     if ffmpeg_process:
-        ffmpeg_process.stdin.close()
-        ffmpeg_process.wait()
+        close_video_process(ffmpeg_process)
 
     if layout.isHidden():
         pg.exit()
