@@ -9,15 +9,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtWidgets
 
 from environments.simulated_subgraph import SimulatedSubgraph
-from simulation.chart import (
-    add_line_plot,
-    add_scatter_plot,
-    close_video_process,
-    create_chart,
-    create_layout,
-    create_video_process,
-    render_video_frame,
-)
+from simulation.chart import ChartsWidget
 from simulation.controller import init_simulation
 from simulation.show_bandit import add_experiment_argparse
 
@@ -40,22 +32,22 @@ async def main():
     # We need the environment to be SimulatedSubgraph
     assert isinstance(environment, SimulatedSubgraph)
 
-    ffmpeg_process = None
-
     # Environment x.
     min_x = 1e-8
     max_x = 8e-5
 
-    layout = create_layout(
-        WINDOW_SIZE,
-        "Multi-agent training",
-        not args.save,
+    output_file = f"{args.config}.mp4" if args.save else None
+
+    colors = [(i, len(agents) + 1) for i in range(len(agents) + 1)]
+
+    charts = ChartsWidget(
+        title="Multi-agent training",
+        output_file=output_file,
         antialias=True,
-        foreground="white",
+        foreground="w",
     )
 
-    policy_chart = create_chart(
-        layout,
+    policy_chart = charts.create_chart(
         title="time 0",
         height=300,
         legend_width=300,
@@ -65,125 +57,77 @@ async def main():
         y_range=(0, 1.3),
     )
 
-    # Policy PD
-    agents_dist = [
-        add_line_plot(
-            policy_chart,
-            f"Agent {agent_name}: policy",
-            color=(i, len(agents) + 1),
-            width=1.5,
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+    query_rate_chart = charts.create_chart(
+        legend_width=300, x_label="Timestep", y_label="Query rate"
+    )
 
-    # Initial policy PD
-    agents_init_dist = [
-        add_line_plot(
-            policy_chart,
+    total_queries_chart = charts.create_chart(
+        legend_width=300, x_label="Timestep", y_label="Total queries"
+    )
+
+    # Create revenue rate plot
+    revenue_rate_chart = charts.create_chart(
+        legend_width=300, x_label="Timestep", y_label="Revenue rate"
+    )
+
+    # Create total revenue plot
+    total_revenue_chart = charts.create_chart(
+        legend_width=300, x_label="Timestep", y_label="Total revenue"
+    )
+
+    for i, agent_name in enumerate(agents.keys()):
+        agent_key = f"a{i}"
+        policy_chart.add_line_plot(
+            agent_key, f"Agent {agent_name}: policy", color=colors[i], width=1.5
+        )
+        policy_chart.add_line_plot(
+            f"i{i}",
             f"Agent {agent_name}: init policy",
-            color=(i, len(agents) + 1),
-            width=1.5,
+            color=colors[i],
             style=QtCore.Qt.DotLine,  # type: ignore
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
-
-    # This is a line plot with invisible line and visible data points.
-    # Easier to scale with the rest of the plot than with using a ScatterPlot.
-    agents_scatter_qps = [
-        add_scatter_plot(
-            policy_chart,
-            f"Agent {agent_name}: query rate",
-            color=(i, len(agents) + 1),
-            border="w",
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
-
-    # Environment QPS
-    env_plot = add_line_plot(
-        policy_chart, "Environment: total query rate", color="grey", width=1.5
-    )
-
-    query_rate_chart = create_chart(
-        layout, legend_width=300, x_label="Timestep", y_label="Query rate"
-    )
-
-    agent_qps_plots = [
-        add_line_plot(
-            query_rate_chart,
-            f"Agent {agent_name}",
-            color=(i, len(agents) + 1),
             width=1.5,
         )
-        for i, agent_name in enumerate(agents.keys())
-    ]
+        policy_chart.add_scatter_plot(
+            f"q{i}", f"Agent {agent_name}: query rate", color=colors[i], border="w"
+        )
+        query_rate_chart.add_line_plot(
+            agent_key, f"Agent {agent_name}", color=colors[i], width=1.5
+        )
+        total_queries_chart.add_line_plot(
+            agent_key, f"Agent {agent_name}", color=colors[i], width=1.5
+        )
+        revenue_rate_chart.add_line_plot(
+            agent_key, f"Agent {agent_name}", color=colors[i], width=1.5
+        )
+        total_revenue_chart.add_line_plot(
+            agent_key, f"Agent {agent_name}", color=colors[i], width=1.5
+        )
+
+    policy_chart.add_line_plot(
+        "e", "Environment: total query rate", color="gray", width=1.5
+    )
+
+    total_queries_chart.add_line_plot(
+        "d", "Dropped", color=colors[len(agents)], width=1.5
+    )
 
     queries_per_second = [[] for _ in agents]
-
-    total_queries_chart = create_chart(
-        layout, legend_width=300, x_label="Timestep", y_label="Total queries"
-    )
-
-    total_agent_queries_plots = [
-        add_line_plot(
-            total_queries_chart,
-            f"Agent {agent_name}",
-            color=(i, len(agents) + 1),
-            width=1.5,
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
-
-    total_unserved_queries_plot = add_line_plot(
-        total_queries_chart, "Dropped", color=(len(agents), len(agents) + 1), width=1.5
-    )
-
+    revenue_rate_data = [[] for _ in agents]
+    total_revenue_data = [[] for _ in agents]
     total_agent_queries_data = [[] for _ in agents]
     total_unserved_queries_data = []
 
-    # Create revenue rate plot
-    revenue_rate_chart = create_chart(
-        layout, legend_width=300, x_label="Timestep", y_label="Revenue rate"
-    )
-
-    revenue_rate_plots = [
-        add_line_plot(
-            revenue_rate_chart,
-            f"Agent {agent_name}",
-            color=(i, len(agents) + 1),
-            width=1.5,
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
-
-    revenue_rate_data = [[] for _ in agents]
-
-    # Create total revenue plot
-    total_revenue_chart = create_chart(
-        layout, legend_width=300, x_label="Timestep", y_label="Total revenue"
-    )
-
-    total_revenue_plots = [
-        add_line_plot(
-            total_revenue_chart,
-            f"Agent {agent_name}",
-            color=(i, len(agents) + 1),
-            width=1.5,
-        )
-        for i, agent_name in enumerate(agents.keys())
-    ]
-
-    total_revenue_data = [[] for _ in agents]
-
     for i in range(args.iterations):
+        if not args.save and charts.is_hidden:
+            break
+
         logging.debug("=" * 20 + " step %s " + "=" * 20, i)
 
         # X. Visualize the environment.
         if i % args.fast_forward_factor == 0:
             # Plot environment.
             env_x, env_y = await environment.generate_plot_data(min_x, max_x)
-            env_plot.setData(env_x, env_y)
+            policy_chart.set_data("e", env_x, env_y)
 
         # Execute actions for all agents.
         scaled_bids = []
@@ -282,64 +226,46 @@ async def main():
         if i % args.fast_forward_factor == 0:
             for agent_id, (agent_name, agent) in enumerate(agents.items()):
 
+                agent_key = f"a{agent_id}"
+
                 # Get data.
                 data = await agent.generate_plot_data(min_x, max_x, logspace=LOG_PLOT)
                 agent_x = data.pop("x")
                 agent_y = data["policy"]
-                agents_dist[agent_id].setData(agent_x, agent_y)
-
-                agent_qps_plots[agent_id].setData(queries_per_second[agent_id])
+                policy_chart.set_data(agent_key, agent_x, agent_y)
+                query_rate_chart.set_data(agent_key, queries_per_second[agent_id])
 
                 # Plot init policy and add it to last list in container.
                 if "init policy" in data.keys():
                     init_agent_y = data["init policy"]
-                    agents_init_dist[agent_id].setData(agent_x, init_agent_y)
+                    policy_chart.set_data(f"i{agent_id}", agent_x, init_agent_y)
 
                 # Agent q/s.
                 agent_qps_x = min(max_x, max(min_x, scaled_bids[agent_id]))
-                agents_scatter_qps[agent_id].setData(
-                    [agent_qps_x], [queries_per_second[agent_id][-1]]
+
+                policy_chart.set_data(
+                    f"q{agent_id}", [agent_qps_x], [queries_per_second[agent_id][-1]]
                 )
 
                 # Total queries served by agent
-                total_agent_queries_plots[agent_id].setData(
-                    total_agent_queries_data[agent_id]
+                total_queries_chart.set_data(
+                    agent_key, total_agent_queries_data[agent_id]
                 )
 
                 # Revenue rate by agent
-                revenue_rate_plots[agent_id].setData(revenue_rate_data[agent_id])
+                revenue_rate_chart.set_data(agent_key, revenue_rate_data[agent_id])
 
                 # Total revenue by agent
-                total_revenue_plots[agent_id].setData(total_revenue_data[agent_id])
+                total_revenue_chart.set_data(agent_key, total_revenue_data[agent_id])
 
             # Total queries unserved
-            total_unserved_queries_plot.setData(total_unserved_queries_data)
+            total_queries_chart.set_data("d", total_unserved_queries_data)
 
-            policy_chart.setTitle(f"time {i}")
+            policy_chart.title = f"time {i}"
 
-        QtWidgets.QApplication.processEvents()  # type: ignore
+            charts.render()
 
-        if args.save:
-            if i % args.fast_forward_factor == 0:
-                if not ffmpeg_process:
-                    # Start ffmpeg to save video
-                    FILENAME = f"{args.config}.mp4"
-                    ffmpeg_process = create_video_process(FILENAME, WINDOW_SIZE)
-
-                render_video_frame(ffmpeg_process, layout, WINDOW_SIZE)
-
-        else:  # Show
-            if layout.isHidden():
-                break
-
-    if ffmpeg_process:
-        close_video_process(ffmpeg_process)
-
-    if layout.isHidden():
-        pg.exit()
-    else:
-        # Keep window open
-        pg.exec()
+    charts.close()
 
 
 if __name__ == "__main__":

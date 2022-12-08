@@ -6,7 +6,7 @@ from typing import Dict, Optional, Tuple
 
 import ffmpeg
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 
 
 def create_layout(
