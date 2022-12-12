@@ -3,7 +3,7 @@
 
 from enum import Enum
 from subprocess import Popen
-from typing import Any, Dict, NamedTuple, Optional, Tuple, TypedDict
+from typing import Any, Dict, NamedTuple, Optional, Tuple, TypedDict, Union
 
 import ffmpeg
 import pyqtgraph as pg
@@ -51,7 +51,7 @@ class IndexedColor(NamedTuple):
     hues: int
 
 
-Color = RGBAColor | NamedColor | IndexedColor | int | float | str
+Color = Union[RGBAColor, NamedColor, IndexedColor, int, float, str]
 """Color based on model, predefined values, single greyscale value (0.0 - 1.0) , color index or string representing color (“#RGB”,“#RGBA”,“#RRGGBB”,“#RRGGBBAA”)."""
 
 
