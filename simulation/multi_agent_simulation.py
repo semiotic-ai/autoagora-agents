@@ -5,11 +5,8 @@ import argparse
 import logging
 from asyncio import run
 
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtWidgets
-
 from environments.simulated_subgraph import SimulatedSubgraph
-from simulation.chart import ChartsWidget
+from simulation.chart import ChartsWidget, IndexedColor, NamedColor, PenConfig, PenStyle
 from simulation.controller import init_simulation
 from simulation.show_bandit import add_experiment_argparse
 
@@ -38,7 +35,7 @@ async def main():
 
     output_file = f"{args.config}.mp4" if args.save else None
 
-    colors = [(i, len(agents) + 1) for i in range(len(agents) + 1)]
+    colors = [IndexedColor(i, len(agents) + 1) for i in range(len(agents) + 1)]
 
     charts = ChartsWidget(
         title="Multi-agent training",
@@ -84,11 +81,14 @@ async def main():
             f"i{i}",
             f"Agent {agent_name}: init policy",
             color=colors[i],
-            style=QtCore.Qt.DotLine,  # type: ignore
+            style=PenStyle.DotLine,
             width=1.5,
         )
         policy_chart.add_scatter_plot(
-            f"q{i}", f"Agent {agent_name}: query rate", color=colors[i], border="w"
+            f"q{i}",
+            f"Agent {agent_name}: query rate",
+            color=colors[i],
+            border=PenConfig(color=NamedColor.w),
         )
         query_rate_chart.add_line_plot(
             agent_key, f"Agent {agent_name}", color=colors[i], width=1.5

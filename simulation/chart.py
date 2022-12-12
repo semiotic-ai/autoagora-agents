@@ -1,12 +1,132 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+from enum import Enum
 from subprocess import Popen
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, NamedTuple, Optional, Tuple, TypedDict
 
 import ffmpeg
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
+
+
+class RGBAColor(NamedTuple):
+    """An RGB color value represents RED, GREEN, and BLUE light sources
+    with alpha channel- which specifies the opacity for a color."""
+
+    R: int
+    """Red [0-255]"""
+    G: int
+    """Green [0-255]"""
+    B: int
+    """Blue [0-255]"""
+    A: Optional[int]
+    """Alpha [0-255]"""
+
+
+class NamedColor(Enum):
+    "Single-character string representing a predefined color"
+    r = "r"
+    """Red"""
+    g = "g"
+    """Green"""
+    b = "b"
+    """Blue"""
+    c = "c"
+    """Cyan"""
+    m = "m"
+    """Magenta"""
+    y = "ky"
+    """Yellow"""
+    k = "k"
+    """Key (black)"""
+    w = "w"
+    """White"""
+
+
+class IndexedColor(NamedTuple):
+    """Color from a single index. Useful for stepping through a predefined list of colors."""
+
+    index: int
+    hues: int
+
+
+Color = RGBAColor | NamedColor | IndexedColor | int | float | str
+"""Color based on model, predefined values, single greyscale value (0.0 - 1.0) , color index or string representing color (“#RGB”,“#RGBA”,“#RRGGBB”,“#RRGGBBAA”)."""
+
+
+def _make_color(color: Color) -> Any:
+    """Converts color value to QColor"""
+    if isinstance(color, RGBAColor):
+        if color.A is None:
+            return pg.mkColor((color.R, color.G, color.B))
+        else:
+            return pg.mkColor((color.R, color.G, color.B, color.A))
+    elif isinstance(color, NamedColor):
+        return pg.mkColor(color.value)
+    elif isinstance(color, IndexedColor):
+        return pg.mkColor((color.index, color.hues))
+    else:
+        return pg.mkColor(color)
+
+
+class PenStyle(Enum):
+    """Pen style for drawing lines"""
+
+    # NoPen                    = QtCore.Qt.PenStyle.NoPen
+    SolidLine = QtCore.Qt.PenStyle.SolidLine  # pyright:ignore [reportGeneralTypeIssues]
+    DashLine = QtCore.Qt.PenStyle.DashLine  # pyright:ignore [reportGeneralTypeIssues]
+    DotLine = QtCore.Qt.PenStyle.DotLine  # pyright:ignore [reportGeneralTypeIssues]
+    DashDotLine = (
+        QtCore.Qt.PenStyle.DashDotLine  # pyright:ignore [reportGeneralTypeIssues]
+    )
+    DashDotDotLine = (
+        QtCore.Qt.PenStyle.DashDotDotLine  # pyright:ignore [reportGeneralTypeIssues]
+    )
+    # CustomDashLine           = QtCore.Qt.PenStyle.CustomDashLine
+    # MPenStyle                = QtCore.Qt.PenStyle.MPenStyle
+
+
+def _make_pen(
+    color: Optional[Color] = None,
+    width: Optional[float] = None,
+    style: Optional[PenStyle] = None,
+) -> Any:
+    """Creates a QPen from a parameters"""
+    config: Dict[str, Any] = {}
+
+    if color is not None:
+        config["color"] = _make_color(color)
+
+    if width is not None:
+        config["width"] = width
+
+    if style is not None:
+        config["style"] = style.value
+
+    return pg.mkPen(**config)
+
+
+class SymbolType(Enum):
+    """Marker symbol shape type"""
+
+    dot = "o"
+    """Circle"""
+    cross = "x"
+    """Cross"""
+    square = "s"
+    """Square"""
+
+
+class PenConfig(TypedDict, total=False):
+    """Configuration for pen to draw lines"""
+
+    width: float
+    """Width of the line"""
+    style: PenStyle
+    """Line style"""
+    color: Color
+    """Line color"""
 
 
 def _create_chart(
@@ -68,25 +188,22 @@ def _create_chart(
 
 
 def _add_line_plot(
-    chart: pg.PlotItem, name: str, color=None, width: Optional[float] = None, style=None
+    chart: pg.PlotItem,
+    name: str,
+    color: Optional[Color] = None,
+    width: Optional[float] = None,
+    style: Optional[PenStyle] = None,
 ) -> pg.PlotDataItem:
     """Adds a line plot to the chart.
 
     Args:
         name (str): Name (legend title) of the plot
-        color (Any, optional): Line color of the plot. Defaults to None.
+        color (Color, optional): Line color of the plot. Defaults to None.
         width (float, optional): Width of the plot line. Defaults to None.
-        style (Any, optional): Style of the plot line. Defaults to None.
+        style (PenStyle, optional): Style of the plot line. Defaults to None.
     """
-    config = {}
-    if color is not None:
-        config["color"] = color
-    if width is not None:
-        config["width"] = width
-    if style is not None:
-        config["style"] = style
 
-    pen = pg.mkPen(**config)
+    pen = _make_pen(color=color, width=width, style=style)
     return chart.plot(name=name, pen=pen)
 
 
@@ -94,18 +211,18 @@ def _add_scatter_plot(
     chart: pg.PlotItem,
     name: str,
     size: Optional[float] = None,
-    color=None,
-    symbol=None,
-    border=None,
+    color: Optional[Color] = None,
+    symbol: Optional[SymbolType] = None,
+    border: Optional[PenConfig] = None,
 ) -> pg.PlotDataItem:
     """Adds a scatter plot to the chart.
 
     Args:
         name (str): Name (legend title) of the plot
         size (float, optional): Size of the marker symbol. Defaults to None.
-        color (Any, optional): Color to fill the marker symbol. Defaults to None.
-        symbol (Any, optional): Shape of the marker symbol. Defaults to None.
-        border (Any, optional): Pen to draw border around the marker symbol. Defaults to None.
+        color (Color, optional): Color to fill the marker symbol. Defaults to None.
+        symbol (SymbolType, optional): Shape of the marker symbol. Defaults to None.
+        border (PenConfig, optional): Pen to draw border around the marker symbol. Defaults to None.
     """
     config = {}
 
@@ -113,13 +230,13 @@ def _add_scatter_plot(
         config["symbolSize"] = size
 
     if color is not None:
-        config["symbolBrush"] = color
+        config["symbolBrush"] = _make_color(color)
 
     if symbol is not None:
-        config["symbol"] = symbol
+        config["symbol"] = symbol.value
 
     if border is not None:
-        config["symbolPen"] = border
+        config["symbolPen"] = _make_pen(**border)
 
     return chart.plot(name=name, pen=None, **config)
 
@@ -214,16 +331,21 @@ class ChartWidget:
         self.__plots: Dict[str, pg.PlotDataItem] = {}
 
     def add_line_plot(
-        self, id: str, name: str, color=None, width: Optional[float] = None, style=None
+        self,
+        id: str,
+        name: str,
+        color: Optional[Color] = None,
+        width: Optional[float] = None,
+        style: Optional[PenStyle] = None,
     ):
         """Adds a line plot to the chart.
 
         Args:
             id (str): unique id of the plot in the chart
             name (str): Name (legend title) of the plot
-            color (Any, optional): Line color of the plot. Defaults to None.
+            color (Color, optional): Line color of the plot. Defaults to None.
             width (float, optional): Width of the plot line. Defaults to None.
-            style (Any, optional): Style of the plot line. Defaults to None.
+            style (PenStyle, optional): Style of the plot line. Defaults to None.
         """
         self.__plots[id] = _add_line_plot(
             chart=self.__chart, name=name, color=color, width=width, style=style
@@ -234,9 +356,9 @@ class ChartWidget:
         id: str,
         name: str,
         size: Optional[float] = None,
-        color=None,
-        symbol=None,
-        border=None,
+        color: Optional[Color] = None,
+        symbol: Optional[SymbolType] = None,
+        border: Optional[PenConfig] = None,
     ):
         """Adds a scatter plot to the chart.
 
@@ -244,9 +366,9 @@ class ChartWidget:
             id (str): Unique id of the plot in the chart
             name (str): Name (legend title) of the plot
             size (float, optional): Size of the marker symbol. Defaults to None.
-            color (Any, optional): Color to fill the marker symbol. Defaults to None.
-            symbol (Any, optional): Shape of the marker symbol. Defaults to None.
-            border (Any, optional): Pen to draw border around the marker symbol. Defaults to None.
+            color (Color, optional): Color to fill the marker symbol. Defaults to None.
+            symbol (SymbolType, optional): Shape of the marker symbol. Defaults to None.
+            border (PenConfig, optional): Pen to draw border around the marker symbol. Defaults to None.
         """
         self.__plots[id] = _add_scatter_plot(
             chart=self.__chart,
