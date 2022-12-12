@@ -489,7 +489,9 @@ class ChartsWidget:
         output_pixel_format: str = DEFAULT_PIXEL_FORMAT,
         size: Tuple[int, int] = DEFAULT_WIN_SIZE,
         antialias: Optional[bool] = None,
-        foreground=None,
+        foreground: Optional[Color] = None,
+        background: Optional[Color] = None,
+        border: Optional[Union[bool, Tuple[int, int, int]]] = None,
     ) -> None:
         """Initialize application and layout container
 
@@ -499,22 +501,26 @@ class ChartsWidget:
             output_codec (str, optional): Codec name to be used for encoding. Defaults to "libx264".
             output_pixel_format (str, optional): Ouput pixel format. Defaults to "yuv420p".
             size (Tuple[int,int]):(width,height) of the charts window. Defaults to 1000x1000.
-            antialias (Optional[bool], optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
-            foreground (Any, optional): General foreground color (text,ie). Defaults to None.
+            antialias (bool, optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
+            foreground (Color, optional): General foreground color (text,ie). Defaults to None.
+            background (Color, optional): General background color. Defaults to None.
+            border (Union[bool,Tuple[int,int,int]], optional): Border between charts.`True` for default border, `False`for None or triplet of int for custom. Defaults to None.
         """
 
         self.__save = output_file is not None
 
         # Set up PyQtGraph
         if foreground is not None:
-            pg.setConfigOption("foreground", foreground)
+            pg.setConfigOption("foreground", _make_color(foreground))
+        if background is not None:
+            pg.setConfigOption("background", _make_color(background))
         if antialias is not None:
             pg.setConfigOptions(antialias=antialias)
 
         self.__app = pg.mkQApp(title)
 
         self.__layout = pg.GraphicsLayoutWidget(
-            show=not self.__save, title=title, size=size
+            show=not self.__save, title=title, size=size, border=border
         )
 
         self.__init_size = size

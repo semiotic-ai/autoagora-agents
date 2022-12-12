@@ -41,7 +41,7 @@ async def main():
         title="Multi-agent training",
         output_file=output_file,
         antialias=True,
-        foreground="w",
+        foreground=NamedColor.w,
     )
 
     policy_chart = charts.create_chart(
