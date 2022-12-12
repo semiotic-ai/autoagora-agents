@@ -6,36 +6,7 @@ from typing import Dict, Optional, Tuple
 
 import ffmpeg
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
-
-
-def create_layout(
-    size: Tuple[int, int],
-    title: str,
-    show: bool,
-    antialias: Optional[bool] = None,
-    foreground=None,
-) -> pg.GraphicsLayoutWidget:
-    """Initialize application and layout container
-
-    Args:
-        size (Tuple[int,int]):(width,height) of the charts window.
-        title (str): Title of charts window.
-        show (bool): Show app window.
-        antialias (Optional[bool], optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
-        foreground (Any, optional): General foreground color (text,ie). Defaults to None.
-    """
-    # Set up PyQtGraph
-    if foreground is not None:
-        pg.setConfigOption("foreground", foreground)
-    if antialias is not None:
-        pg.setConfigOptions(antialias=antialias)
-
-    pg.mkQApp(title)
-
-    layout = pg.GraphicsLayoutWidget(show=show, title=title)
-    layout.resize(*size)
-    return layout
+from pyqtgraph.Qt import QtCore, QtGui
 
 
 def create_chart(
@@ -332,10 +303,21 @@ class ChartsWidget:
         """
 
         self.__save = output_file is not None
-        self.__layout = create_layout(
-            size, title, not self.__save, antialias=antialias, foreground=foreground
+
+        # Set up PyQtGraph
+        if foreground is not None:
+            pg.setConfigOption("foreground", foreground)
+        if antialias is not None:
+            pg.setConfigOptions(antialias=antialias)
+
+        self.__app = pg.mkQApp(title)
+
+        self.__layout = pg.GraphicsLayoutWidget(
+            show=not self.__save, title=title, size=size
         )
+
         self.__init_size = size
+
         if output_file is not None:
             self.__ffmpeg_process = create_video_process(
                 output_file, size, codec=output_codec, pixel_format=output_pixel_format
@@ -386,7 +368,7 @@ class ChartsWidget:
     def render(self):
         """Renders chart changes to UI or animation file."""
 
-        QtWidgets.QApplication.processEvents()  # type: ignore
+        self.__app.processEvents()  # type: ignore
 
         if self.__save:
             render_video_frame(self.__ffmpeg_process, self.__layout, self.__init_size)
