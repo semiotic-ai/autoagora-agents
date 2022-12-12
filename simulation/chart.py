@@ -129,6 +129,18 @@ class PenConfig(TypedDict, total=False):
     """Line color"""
 
 
+class DownsampleMethod(Enum):
+    """Method to resample the data before plotting ot avoid plotting multiple line segments per pixel."""
+
+    subsample = "subsample"
+    """Downsample by taking the first of N samples. This method is fastest and least accurate. """
+    mean = "mean"
+    """Downsample by taking the mean of N samples. """
+    peak = "peak"
+    """Downsample by drawing a saw wave that follows the min and max of the original data. 
+    This method produces the best visual representation of the data but is slower."""
+
+
 def _create_chart(
     layout: pg.GraphicsLayoutWidget,
     title: Optional[str] = None,
@@ -187,12 +199,40 @@ def _create_chart(
     return chart
 
 
+def _update_downsapling(
+    plot: pg.PlotDataItem,
+    auto: Optional[bool] = None,
+    ds: Optional[int] = None,
+    method: Optional[DownsampleMethod] = None,
+):
+    """Update plot downsampling parameters"""
+
+    if auto is None and ds is None and method is None:
+        return
+
+    config: Dict[str, Any] = {}
+
+    if auto is not None:
+        config["auto"] = auto
+
+    if ds is not None:
+        config["ds"] = ds
+
+    if method is not None:
+        config["method"] = method.value
+
+    plot.setDownsampling(**config)
+
+
 def _add_line_plot(
     chart: pg.PlotItem,
     name: str,
     color: Optional[Color] = None,
     width: Optional[float] = None,
     style: Optional[PenStyle] = None,
+    autoDownsample: Optional[bool] = None,
+    downsample: Optional[int] = None,
+    downsampleMethod: Optional[DownsampleMethod] = None,
 ) -> pg.PlotDataItem:
     """Adds a line plot to the chart.
 
@@ -201,10 +241,17 @@ def _add_line_plot(
         color (Color, optional): Line color of the plot. Defaults to None.
         width (float, optional): Width of the plot line. Defaults to None.
         style (PenStyle, optional): Style of the plot line. Defaults to None.
+        autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
+        downsample (int,optional): RReduce visible plot samples by this factor. To disable, set as 1. Defaults to None.
+        downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
     """
-
-    pen = _make_pen(color=color, width=width, style=style)
-    return chart.plot(name=name, pen=pen)
+    config = {"name": name}
+    config["pen"] = _make_pen(color=color, width=width, style=style)
+    plot = chart.plot(**config)
+    _update_downsapling(
+        plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
+    )
+    return plot
 
 
 def _add_scatter_plot(
@@ -214,6 +261,9 @@ def _add_scatter_plot(
     color: Optional[Color] = None,
     symbol: Optional[SymbolType] = None,
     border: Optional[PenConfig] = None,
+    autoDownsample: Optional[bool] = None,
+    downsample: Optional[int] = None,
+    downsampleMethod: Optional[DownsampleMethod] = None,
 ) -> pg.PlotDataItem:
     """Adds a scatter plot to the chart.
 
@@ -223,8 +273,11 @@ def _add_scatter_plot(
         color (Color, optional): Color to fill the marker symbol. Defaults to None.
         symbol (SymbolType, optional): Shape of the marker symbol. Defaults to None.
         border (PenConfig, optional): Pen to draw border around the marker symbol. Defaults to None.
+        autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
+        downsample (int,optional): Reduce visible plot samples by this factor. To disable, set as 1. Defaults to None.
+        downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
     """
-    config = {}
+    config = {"name": name, "pen": None}
 
     if size is not None:
         config["symbolSize"] = size
@@ -238,7 +291,11 @@ def _add_scatter_plot(
     if border is not None:
         config["symbolPen"] = _make_pen(**border)
 
-    return chart.plot(name=name, pen=None, **config)
+    plot = chart.plot(**config)
+    _update_downsapling(
+        plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
+    )
+    return plot
 
 
 def _create_video_process(
@@ -337,6 +394,9 @@ class ChartWidget:
         color: Optional[Color] = None,
         width: Optional[float] = None,
         style: Optional[PenStyle] = None,
+        autoDownsample: Optional[bool] = None,
+        downsample: Optional[int] = None,
+        downsampleMethod: Optional[DownsampleMethod] = None,
     ):
         """Adds a line plot to the chart.
 
@@ -346,9 +406,19 @@ class ChartWidget:
             color (Color, optional): Line color of the plot. Defaults to None.
             width (float, optional): Width of the plot line. Defaults to None.
             style (PenStyle, optional): Style of the plot line. Defaults to None.
+            autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
+            downsample (int,optional): Reduce the number of samples displayed by the given factor. Defaults  to None.
+            downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
         """
         self.__plots[id] = _add_line_plot(
-            chart=self.__chart, name=name, color=color, width=width, style=style
+            chart=self.__chart,
+            name=name,
+            color=color,
+            width=width,
+            style=style,
+            autoDownsample=autoDownsample,
+            downsample=downsample,
+            downsampleMethod=downsampleMethod,
         )
 
     def add_scatter_plot(
@@ -359,6 +429,9 @@ class ChartWidget:
         color: Optional[Color] = None,
         symbol: Optional[SymbolType] = None,
         border: Optional[PenConfig] = None,
+        autoDownsample: Optional[bool] = None,
+        downsample: Optional[int] = None,
+        downsampleMethod: Optional[DownsampleMethod] = None,
     ):
         """Adds a scatter plot to the chart.
 
@@ -369,6 +442,9 @@ class ChartWidget:
             color (Color, optional): Color to fill the marker symbol. Defaults to None.
             symbol (SymbolType, optional): Shape of the marker symbol. Defaults to None.
             border (PenConfig, optional): Pen to draw border around the marker symbol. Defaults to None.
+            autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
+            downsample (int,optional): Reduce the number of samples displayed by the given factor. Defaults  to None.
+            downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
         """
         self.__plots[id] = _add_scatter_plot(
             chart=self.__chart,
@@ -377,6 +453,9 @@ class ChartWidget:
             color=color,
             symbol=symbol,
             border=border,
+            autoDownsample=autoDownsample,
+            downsample=downsample,
+            downsampleMethod=downsampleMethod,
         )
 
     def set_data(self, id: str, *args, **kargs):
