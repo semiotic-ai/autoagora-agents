@@ -9,7 +9,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 
 
-def create_chart(
+def _create_chart(
     layout: pg.GraphicsLayoutWidget,
     title: Optional[str] = None,
     height: Optional[int] = None,
@@ -67,7 +67,7 @@ def create_chart(
     return chart
 
 
-def add_line_plot(
+def _add_line_plot(
     chart: pg.PlotItem, name: str, color=None, width: Optional[float] = None, style=None
 ) -> pg.PlotDataItem:
     """Adds a line plot to the chart.
@@ -90,7 +90,7 @@ def add_line_plot(
     return chart.plot(name=name, pen=pen)
 
 
-def add_scatter_plot(
+def _add_scatter_plot(
     chart: pg.PlotItem,
     name: str,
     size: Optional[float] = None,
@@ -124,7 +124,7 @@ def add_scatter_plot(
     return chart.plot(name=name, pen=None, **config)
 
 
-def create_video_process(
+def _create_video_process(
     file_name: str,
     size: Tuple[int, int],
     codec: str = "libx264",
@@ -155,7 +155,7 @@ def create_video_process(
     return process
 
 
-def render_video_frame(
+def _render_video_frame(
     video_process: Popen, layout: pg.GraphicsLayoutWidget, size: Tuple[int, int]
 ):
     """Renders a frame by capturing plots drawn on the layout.
@@ -193,7 +193,7 @@ def render_video_frame(
     )
 
 
-def close_video_process(video_process: Popen):
+def _close_video_process(video_process: Popen):
     """Waits until encoding sub process is finished data in the stdin
 
     Args:
@@ -225,7 +225,7 @@ class ChartWidget:
             width (float, optional): Width of the plot line. Defaults to None.
             style (Any, optional): Style of the plot line. Defaults to None.
         """
-        self.__plots[id] = add_line_plot(
+        self.__plots[id] = _add_line_plot(
             chart=self.__chart, name=name, color=color, width=width, style=style
         )
 
@@ -248,7 +248,7 @@ class ChartWidget:
             symbol (Any, optional): Shape of the marker symbol. Defaults to None.
             border (Any, optional): Pen to draw border around the marker symbol. Defaults to None.
         """
-        self.__plots[id] = add_scatter_plot(
+        self.__plots[id] = _add_scatter_plot(
             chart=self.__chart,
             name=name,
             size=size,
@@ -319,7 +319,7 @@ class ChartsWidget:
         self.__init_size = size
 
         if output_file is not None:
-            self.__ffmpeg_process = create_video_process(
+            self.__ffmpeg_process = _create_video_process(
                 output_file, size, codec=output_codec, pixel_format=output_pixel_format
             )
 
@@ -351,7 +351,7 @@ class ChartsWidget:
             ChartWidget: a chart to define and draw plots
         """
 
-        chart = create_chart(
+        chart = _create_chart(
             self.__layout,
             title=title,
             height=height,
@@ -371,7 +371,7 @@ class ChartsWidget:
         self.__app.processEvents()  # type: ignore
 
         if self.__save:
-            render_video_frame(self.__ffmpeg_process, self.__layout, self.__init_size)
+            _render_video_frame(self.__ffmpeg_process, self.__layout, self.__init_size)
 
     @property
     def is_hidden(self) -> bool:
@@ -381,7 +381,7 @@ class ChartsWidget:
     def close(self):
         """Closes the UI or finishes animation file recording."""
         if self.__save:
-            close_video_process(self.__ffmpeg_process)
+            _close_video_process(self.__ffmpeg_process)
 
         if self.is_hidden:
             pg.exit()
