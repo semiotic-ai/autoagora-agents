@@ -3,7 +3,7 @@
 
 from enum import Enum
 from subprocess import Popen
-from typing import Any, Dict, NamedTuple, Optional, Tuple, TypedDict, Union
+from typing import Any, Dict, Literal, NamedTuple, Optional, Tuple, TypedDict, Union
 
 import ffmpeg
 import pyqtgraph as pg
@@ -24,24 +24,17 @@ class RGBAColor(NamedTuple):
     """Alpha [0-255]"""
 
 
-class NamedColor(Enum):
-    "Single-character string representing a predefined color"
-    r = "r"
-    """Red"""
-    g = "g"
-    """Green"""
-    b = "b"
-    """Blue"""
-    c = "c"
-    """Cyan"""
-    m = "m"
-    """Magenta"""
-    y = "ky"
-    """Yellow"""
-    k = "k"
-    """Key (black)"""
-    w = "w"
-    """White"""
+# Single-character string representing a predefined color
+NamedColor = Literal[
+    "r",  # red
+    "g",  # green
+    "b",  # blue
+    "c",  # cyan
+    "m",  # magenta
+    "y",  # yellow
+    "k",  # key (black)
+    "w",  # white
+]
 
 
 class IndexedColor(NamedTuple):
@@ -62,8 +55,6 @@ def _make_color(color: Color) -> Any:
             return pg.mkColor((color.R, color.G, color.B))
         else:
             return pg.mkColor((color.R, color.G, color.B, color.A))
-    elif isinstance(color, NamedColor):
-        return pg.mkColor(color.value)
     elif isinstance(color, IndexedColor):
         return pg.mkColor((color.index, color.hues))
     else:
@@ -107,15 +98,7 @@ def _make_pen(
     return pg.mkPen(**config)
 
 
-class SymbolType(Enum):
-    """Marker symbol shape type"""
-
-    dot = "o"
-    """Circle"""
-    cross = "x"
-    """Cross"""
-    square = "s"
-    """Square"""
+SymbolType = Literal["o", "x", "s"]  # dot, cross, square
 
 
 class PenConfig(TypedDict, total=False):
@@ -129,16 +112,12 @@ class PenConfig(TypedDict, total=False):
     """Line color"""
 
 
-class DownsampleMethod(Enum):
-    """Method to resample the data before plotting ot avoid plotting multiple line segments per pixel."""
-
-    subsample = "subsample"
-    """Downsample by taking the first of N samples. This method is fastest and least accurate. """
-    mean = "mean"
-    """Downsample by taking the mean of N samples. """
-    peak = "peak"
-    """Downsample by drawing a saw wave that follows the min and max of the original data. 
-    This method produces the best visual representation of the data but is slower."""
+# Method to resample the data before plotting ot avoid plotting multiple line segments per pixel.
+DownsampleMethod = Literal[
+    "subsample",  # Downsample by taking the first of N samples. This method is fastest and least accurate.
+    "mean",  # Downsample by taking the mean of N samples.
+    "peak",  # Downsample by drawing a saw wave that follows the min and max of the original data. This method produces the best visual representation of the data but is slower.
+]
 
 
 def _create_chart(
@@ -219,7 +198,7 @@ def _update_downsapling(
         config["ds"] = ds
 
     if method is not None:
-        config["method"] = method.value
+        config["method"] = method
 
     plot.setDownsampling(**config)
 
@@ -286,7 +265,7 @@ def _add_scatter_plot(
         config["symbolBrush"] = _make_color(color)
 
     if symbol is not None:
-        config["symbol"] = symbol.value
+        config["symbol"] = symbol
 
     if border is not None:
         config["symbolPen"] = _make_pen(**border)

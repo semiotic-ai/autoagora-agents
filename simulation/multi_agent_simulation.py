@@ -6,7 +6,7 @@ import logging
 from asyncio import run
 
 from environments.simulated_subgraph import SimulatedSubgraph
-from simulation.chart import ChartsWidget, IndexedColor, NamedColor, PenConfig, PenStyle
+from simulation.chart import ChartsWidget, IndexedColor, PenConfig, PenStyle
 from simulation.controller import init_simulation
 from simulation.show_bandit import add_experiment_argparse
 
@@ -41,7 +41,7 @@ async def main():
         title="Multi-agent training",
         output_file=output_file,
         antialias=True,
-        foreground=NamedColor.w,
+        foreground="w",
     )
 
     policy_chart = charts.create_chart(
@@ -88,7 +88,7 @@ async def main():
             f"query_rate_{i}",
             f"Agent {agent_name}: query rate",
             color=colors[i],
-            border=PenConfig(color=NamedColor.w),
+            border=PenConfig(color="w"),
         )
         query_rate_chart.add_line_plot(
             agent_key, f"Agent {agent_name}", color=colors[i], width=1.5
