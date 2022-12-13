@@ -73,19 +73,19 @@ async def main():
     )
 
     for i, agent_name in enumerate(agents.keys()):
-        agent_key = f"a{i}"
+        agent_key = f"agent_{i}"
         policy_chart.add_line_plot(
             agent_key, f"Agent {agent_name}: policy", color=colors[i], width=1.5
         )
         policy_chart.add_line_plot(
-            f"i{i}",
+            f"init_policy_{i}",
             f"Agent {agent_name}: init policy",
             color=colors[i],
             style=PenStyle.DotLine,
             width=1.5,
         )
         policy_chart.add_scatter_plot(
-            f"q{i}",
+            f"query_rate_{i}",
             f"Agent {agent_name}: query rate",
             color=colors[i],
             border=PenConfig(color=NamedColor.w),
@@ -104,11 +104,11 @@ async def main():
         )
 
     policy_chart.add_line_plot(
-        "e", "Environment: total query rate", color="gray", width=1.5
+        "environment", "Environment: total query rate", color="gray", width=1.5
     )
 
     total_queries_chart.add_line_plot(
-        "d", "Dropped", color=colors[len(agents)], width=1.5
+        "dropped", "Dropped", color=colors[len(agents)], width=1.5
     )
 
     queries_per_second = [[] for _ in agents]
@@ -127,7 +127,7 @@ async def main():
         if i % args.fast_forward_factor == 0:
             # Plot environment.
             env_x, env_y = await environment.generate_plot_data(min_x, max_x)
-            policy_chart.set_data("e", env_x, env_y)
+            policy_chart.set_data("environment", env_x, env_y)
 
         # Execute actions for all agents.
         scaled_bids = []
@@ -226,7 +226,7 @@ async def main():
         if i % args.fast_forward_factor == 0:
             for agent_id, (agent_name, agent) in enumerate(agents.items()):
 
-                agent_key = f"a{agent_id}"
+                agent_key = f"agent_{agent_id}"
 
                 # Get data.
                 data = await agent.generate_plot_data(min_x, max_x, logspace=LOG_PLOT)
@@ -238,13 +238,17 @@ async def main():
                 # Plot init policy and add it to last list in container.
                 if "init policy" in data.keys():
                     init_agent_y = data["init policy"]
-                    policy_chart.set_data(f"i{agent_id}", agent_x, init_agent_y)
+                    policy_chart.set_data(
+                        f"init_policy_{agent_id}", agent_x, init_agent_y
+                    )
 
                 # Agent q/s.
                 agent_qps_x = min(max_x, max(min_x, scaled_bids[agent_id]))
 
                 policy_chart.set_data(
-                    f"q{agent_id}", [agent_qps_x], [queries_per_second[agent_id][-1]]
+                    f"query_rate_{agent_id}",
+                    [agent_qps_x],
+                    [queries_per_second[agent_id][-1]],
                 )
 
                 # Total queries served by agent
@@ -259,7 +263,7 @@ async def main():
                 total_revenue_chart.set_data(agent_key, total_revenue_data[agent_id])
 
             # Total queries unserved
-            total_queries_chart.set_data("d", total_unserved_queries_data)
+            total_queries_chart.set_data("dropped", total_unserved_queries_data)
 
             policy_chart.title = f"time {i}"
 
