@@ -7,6 +7,7 @@ from typing import Any, Dict, Literal, NamedTuple, Optional, Tuple, TypedDict, U
 
 import ffmpeg
 import pyqtgraph as pg
+from multimethod import multimethod
 from pyqtgraph.Qt import QtCore, QtGui
 
 
@@ -48,17 +49,24 @@ Color = Union[RGBAColor, NamedColor, IndexedColor, int, float, str]
 """Color based on model, predefined values, single greyscale value (0.0 - 1.0) , color index or string representing color (“#RGB”,“#RGBA”,“#RRGGBB”,“#RRGGBBAA”)."""
 
 
-def _make_color(color: Color) -> Any:
-    """Converts color value to QColor"""
-    if isinstance(color, RGBAColor):
-        if color.A is None:
-            return pg.mkColor((color.R, color.G, color.B))
-        else:
-            return pg.mkColor((color.R, color.G, color.B, color.A))
-    elif isinstance(color, IndexedColor):
-        return pg.mkColor((color.index, color.hues))
+@multimethod
+def _make_color(color: RGBAColor) -> Any:  # pyright:ignore [reportGeneralTypeIssues]
+    """Converts RGBA color value to QColor"""
+    if color.A is None:
+        return pg.mkColor((color.R, color.G, color.B))
     else:
-        return pg.mkColor(color)
+        return pg.mkColor((color.R, color.G, color.B, color.A))
+
+
+@multimethod
+def _make_color(color: IndexedColor) -> Any:  # pyright:ignore [reportGeneralTypeIssues]
+    """Converts Indexed color value to QColor"""
+    return pg.mkColor((color.index, color.hues))
+
+
+@multimethod
+def _make_color(color: Union[int, float, str]) -> Any:
+    return pg.mkColor(color)
 
 
 class PenStyle(Enum):
@@ -98,7 +106,7 @@ def _make_pen(
     return pg.mkPen(**config)
 
 
-SymbolType = Literal["o", "x", "s"]  # dot, cross, square
+SymbolType = Literal["o", "x", "s"]  # dot  # cross  # square
 
 
 class PenConfig(TypedDict, total=False):

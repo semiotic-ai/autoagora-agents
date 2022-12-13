@@ -500,6 +500,14 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "multimethod"
+version = "1.9"
+description = "Multiple argument dispatching."
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
@@ -1327,7 +1335,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "26d3349187354c2224f261f4a8da067fd9d749679e88f803387a490d6305ba30"
+content-hash = "22bcf27fb99554a09e5604bccd2cf086d8cecb428293fe7a4efb2aa2bd334cb7"
 
 [metadata.files]
 absl-py = [
@@ -1829,6 +1837,10 @@ mdurl = [
 more-itertools = [
     {file = "more-itertools-8.14.0.tar.gz", hash = "sha256:c09443cd3d5438b8dafccd867a6bc1cb0894389e90cb53d227456b0b0bccb750"},
     {file = "more_itertools-8.14.0-py3-none-any.whl", hash = "sha256:1bc4f91ee5b1b31ac7ceacc17c09befe6a40a503907baf9c839c229b5095cfd2"},
+]
+multimethod = [
+    {file = "multimethod-1.9-py3-none-any.whl", hash = "sha256:59cb8ffec7449bd5557993c8d84e788fe04aca9c94b3b181ba8429ab954c24df"},
+    {file = "multimethod-1.9.tar.gz", hash = "sha256:cb1b87815732984172d6802bbfea81d68bfa2a0d5a562fb212ae7d59bad7a455"},
 ]
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},

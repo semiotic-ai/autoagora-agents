@@ -50,6 +50,7 @@ torch = [
 anyio = "^3.5.0"
 numpy = "^1.22.3"
 scipy = "^1.8.0"
+multimethod = "^1.9"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
