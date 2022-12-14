@@ -127,243 +127,6 @@ DownsampleMethod = Literal[
     "peak",  # Downsample by drawing a saw wave that follows the min and max of the original data. This method produces the best visual representation of the data but is slower.
 ]
 
-
-def _create_chart(
-    layout: pg.GraphicsLayoutWidget,
-    title: Optional[str] = None,
-    height: Optional[int] = None,
-    legend_width: Optional[int] = None,
-    x_label: Optional[str] = None,
-    x_range: Optional[Tuple[float, float]] = None,
-    x_log: Optional[bool] = None,
-    y_label: Optional[str] = None,
-    y_range: Optional[Tuple[float, float]] = None,
-    y_log: Optional[bool] = None,
-) -> pg.PlotItem:
-    """Add a chart with legend for plots as a row
-
-    Args:
-        layout(GraphicsLayoutWidget): Parent layout
-        title (str, optional): Title to display on the top. Defaults to None.
-        height (int, optional): Prefred height. Defaults to None.
-        legend_width (int, optional):Legend width. Defaults to None.
-        x_label (str, optional): Label text to display under x axis. Defaults to None.
-        x_range (Tuple[float,float], optional): Constant range(min,max value) of x axis. Defaults to None.
-        x_log (bool, optional): Use logarithmic scale to display x axis. Defaults to None.
-        y_label (str, optional): Label text to display next to y axis. Defaults to None.
-        y_range (Tuple[float,float], optional): Constant range(min,max value) of y axis. Defaults to None.
-        y_log (bool, optional): Use logarithmic scale for y axis. Defaults to None.
-    Returns:
-        PlotItem: a chart to contain plots
-    """
-    chart = layout.addPlot(title=title)
-    if height is not None:
-        chart.setPreferredHeight(300)
-    legend = chart.addLegend(offset=None)
-    vb: pg.ViewBox = layout.addViewBox()
-    if legend_width is not None:
-        vb.setFixedWidth(legend_width)
-    legend.setParentItem(vb)
-    legend.anchor((0, 0), (0, 0))
-    chart.setClipToView(True)
-
-    if x_label is not None:
-        chart.setLabel("bottom", x_label)
-    if x_log is not None:
-        chart.setLogMode(x=x_log)
-    if x_range is not None:
-        chart.setXRange(*x_range)
-
-    if y_label is not None:
-        chart.setLabel("left", y_label)
-    if y_log is not None:
-        chart.setLogMode(y=y_log)
-    if y_range is not None:
-        chart.setYRange(*y_range)
-
-    layout.nextRow()
-
-    return chart
-
-
-def _update_downsapling(
-    plot: pg.PlotDataItem,
-    auto: Optional[bool] = None,
-    ds: Optional[int] = None,
-    method: Optional[DownsampleMethod] = None,
-):
-    """Update plot downsampling parameters"""
-
-    if auto is None and ds is None and method is None:
-        return
-
-    config: Dict[str, Any] = {}
-
-    if auto is not None:
-        config["auto"] = auto
-
-    if ds is not None:
-        config["ds"] = ds
-
-    if method is not None:
-        config["method"] = method
-
-    plot.setDownsampling(**config)
-
-
-def _add_line_plot(
-    chart: pg.PlotItem,
-    name: str,
-    color: Optional[Color] = None,
-    width: Optional[float] = None,
-    style: Optional[PenStyle] = None,
-    autoDownsample: Optional[bool] = None,
-    downsample: Optional[int] = None,
-    downsampleMethod: Optional[DownsampleMethod] = None,
-) -> pg.PlotDataItem:
-    """Adds a line plot to the chart.
-
-    Args:
-        name (str): Name (legend title) of the plot
-        color (Color, optional): Line color of the plot. Defaults to None.
-        width (float, optional): Width of the plot line. Defaults to None.
-        style (PenStyle, optional): Style of the plot line. Defaults to None.
-        autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
-        downsample (int,optional): RReduce visible plot samples by this factor. To disable, set as 1. Defaults to None.
-        downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
-    """
-    config = {"name": name}
-    config["pen"] = _make_pen(color=color, width=width, style=style)
-    plot = chart.plot(**config)
-    _update_downsapling(
-        plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
-    )
-    return plot
-
-
-def _add_scatter_plot(
-    chart: pg.PlotItem,
-    name: str,
-    size: Optional[float] = None,
-    color: Optional[Color] = None,
-    symbol: Optional[SymbolType] = None,
-    border: Optional[PenConfig] = None,
-    autoDownsample: Optional[bool] = None,
-    downsample: Optional[int] = None,
-    downsampleMethod: Optional[DownsampleMethod] = None,
-) -> pg.PlotDataItem:
-    """Adds a scatter plot to the chart.
-
-    Args:
-        name (str): Name (legend title) of the plot
-        size (float, optional): Size of the marker symbol. Defaults to None.
-        color (Color, optional): Color to fill the marker symbol. Defaults to None.
-        symbol (SymbolType, optional): Shape of the marker symbol. Defaults to None.
-        border (PenConfig, optional): Pen to draw border around the marker symbol. Defaults to None.
-        autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
-        downsample (int,optional): Reduce visible plot samples by this factor. To disable, set as 1. Defaults to None.
-        downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
-    """
-    config = {"name": name, "pen": None}
-
-    if size is not None:
-        config["symbolSize"] = size
-
-    if color is not None:
-        config["symbolBrush"] = _make_color(color)
-
-    if symbol is not None:
-        config["symbol"] = symbol
-
-    if border is not None:
-        config["symbolPen"] = _make_pen(**border)
-
-    plot = chart.plot(**config)
-    _update_downsapling(
-        plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
-    )
-    return plot
-
-
-def _create_video_process(
-    file_name: str,
-    size: Tuple[int, int],
-    codec: str = "libx264",
-    pixel_format: str = "yuv420p",
-) -> Popen:
-    """Creates a ffmpeg video process which accepts input from stdin.(NA in windows)
-
-    Args:
-        file_name (str): name of the file to save encoded video ouput
-        size (Tuple[int,int]): Size (width,height) of the video frame
-        codec (str, optional): Codec name to be used for encoding. Defaults to "libx264".
-        pixel_format (str, optional): Ouput pixel format. Defaults to "yuv420p".
-
-    Returns:
-        Process: Asyncronious sub process listening stdin for encoding to the file.
-    """
-    process = (
-        ffmpeg.input(
-            "pipe:",
-            format="rawvideo",
-            pix_fmt="rgb24",
-            s=f"{size[0]}x{size[1]}",
-        )
-        .output(file_name, vcodec=codec, pix_fmt=pixel_format)
-        .overwrite_output()
-        .run_async(pipe_stdin=True)
-    )
-    return process
-
-
-def _render_video_frame(
-    video_process: Popen, layout: pg.GraphicsLayoutWidget, size: Tuple[int, int]
-):
-    """Renders a frame by capturing plots drawn on the layout.
-    Re-scales if required based on the size.
-
-    Args:
-        video_process (Process): Video (ffmpeg) sub process
-        layout (pg.GraphicsLayoutWidget): Layout to capture frame
-        size (Tuple[int,int]): Output size defined while creating the video process.
-    """
-
-    qimage = layout.grab().toImage()
-
-    qimage = qimage.convertToFormat(
-        QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
-    )
-
-    # May have to rescale (HiDPI displays, etc)
-    if (qimage.width(), qimage.height()) != size:
-        qimage = (
-            QtGui.QPixmap.fromImage(qimage)  # type: ignore
-            .scaled(
-                size[0],
-                size[1],
-                mode=QtCore.Qt.TransformationMode.SmoothTransformation,  # type: ignore
-            )
-            .toImage()
-            .convertToFormat(
-                QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
-            )
-        )
-
-    video_process.stdin.write(  # pyright: ignore [reportOptionalMemberAccess]
-        qimage.constBits().tobytes()
-    )
-
-
-def _close_video_process(video_process: Popen):
-    """Waits until encoding sub process is finished data in the stdin
-
-    Args:
-        video_process (Process): Vide (ffmpeg) sub process
-    """
-    video_process.stdin.close()  # pyright: ignore [reportOptionalMemberAccess]
-    video_process.wait()
-
-
 DEFAULT_WIN_SIZE = (1000, 1000)
 DEFAULT_CODEC = "libx264"
 DEFAULT_PIXEL_FORMAT = "yuv420p"
@@ -373,6 +136,31 @@ class ChartWidget:
     def __init__(self, chart: pg.PlotItem) -> None:
         self.__chart = chart
         self.__plots: Dict[str, pg.PlotDataItem] = {}
+
+    @staticmethod
+    def _update_downsapling(
+        plot: pg.PlotDataItem,
+        auto: Optional[bool] = None,
+        ds: Optional[int] = None,
+        method: Optional[DownsampleMethod] = None,
+    ):
+        """Update plot downsampling parameters"""
+
+        if auto is None and ds is None and method is None:
+            return
+
+        config: Dict[str, Any] = {}
+
+        if auto is not None:
+            config["auto"] = auto
+
+        if ds is not None:
+            config["ds"] = ds
+
+        if method is not None:
+            config["method"] = method
+
+        plot.setDownsampling(**config)
 
     def add_line_plot(
         self,
@@ -397,16 +185,14 @@ class ChartWidget:
             downsample (int,optional): Reduce the number of samples displayed by the given factor. Defaults  to None.
             downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
         """
-        self.__plots[id] = _add_line_plot(
-            chart=self.__chart,
-            name=name,
-            color=color,
-            width=width,
-            style=style,
-            autoDownsample=autoDownsample,
-            downsample=downsample,
-            downsampleMethod=downsampleMethod,
+        config = {"name": name}
+        config["pen"] = _make_pen(color=color, width=width, style=style)
+        plot = self.__chart.plot(**config)
+        ChartWidget._update_downsapling(
+            plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
         )
+
+        self.__plots[id] = plot
 
     def add_scatter_plot(
         self,
@@ -433,17 +219,26 @@ class ChartWidget:
             downsample (int,optional): Reduce the number of samples displayed by the given factor. Defaults  to None.
             downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
         """
-        self.__plots[id] = _add_scatter_plot(
-            chart=self.__chart,
-            name=name,
-            size=size,
-            color=color,
-            symbol=symbol,
-            border=border,
-            autoDownsample=autoDownsample,
-            downsample=downsample,
-            downsampleMethod=downsampleMethod,
+        config = {"name": name, "pen": None}
+
+        if size is not None:
+            config["symbolSize"] = size
+
+        if color is not None:
+            config["symbolBrush"] = _make_color(color)
+
+        if symbol is not None:
+            config["symbol"] = symbol
+
+        if border is not None:
+            config["symbolPen"] = _make_pen(**border)
+
+        plot = self.__chart.plot(**config)
+        ChartWidget._update_downsapling(
+            plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
         )
+
+        self.__plots[id] = plot
 
     def set_data(self, id: str, *args, **kargs):
         """Updates the plot with provided data \n
@@ -513,8 +308,16 @@ class ChartsWidget:
         self.__init_size = size
 
         if output_file is not None:
-            self.__ffmpeg_process = _create_video_process(
-                output_file, size, codec=output_codec, pixel_format=output_pixel_format
+            self.__ffmpeg_process: Popen = (
+                ffmpeg.input(
+                    "pipe:",
+                    format="rawvideo",
+                    pix_fmt="rgb24",
+                    s=f"{size[0]}x{size[1]}",
+                )
+                .output(output_file, vcodec=output_codec, pix_fmt=output_pixel_format)
+                .overwrite_output()
+                .run_async(pipe_stdin=True)
             )
 
     def create_chart(
@@ -545,27 +348,65 @@ class ChartsWidget:
             ChartWidget: a chart to define and draw plots
         """
 
-        chart = _create_chart(
-            self.__layout,
-            title=title,
-            height=height,
-            legend_width=legend_width,
-            x_label=x_label,
-            x_range=x_range,
-            x_log=x_log,
-            y_label=y_label,
-            y_range=y_range,
-            y_log=y_log,
-        )
+        chart = self.__layout.addPlot(title=title)
+        if height is not None:
+            chart.setPreferredHeight(300)
+        legend = chart.addLegend(offset=None)
+        vb: pg.ViewBox = self.__layout.addViewBox()
+        if legend_width is not None:
+            vb.setFixedWidth(legend_width)
+        legend.setParentItem(vb)
+        legend.anchor((0, 0), (0, 0))
+        chart.setClipToView(True)
+
+        if x_label is not None:
+            chart.setLabel("bottom", x_label)
+        if x_log is not None:
+            chart.setLogMode(x=x_log)
+        if x_range is not None:
+            chart.setXRange(*x_range)
+
+        if y_label is not None:
+            chart.setLabel("left", y_label)
+        if y_log is not None:
+            chart.setLogMode(y=y_log)
+        if y_range is not None:
+            chart.setYRange(*y_range)
+
+        self.__layout.nextRow()
+
         return ChartWidget(chart)
 
     def render(self):
         """Renders chart changes to UI or animation file."""
-
         self.__app.processEvents()  # type: ignore
 
         if self.__save:
-            _render_video_frame(self.__ffmpeg_process, self.__layout, self.__init_size)
+            # Renders a frame by capturing plots drawn on the layout.Re-scales if required based on the size.
+            qimage = self.__layout.grab().toImage()
+
+            qimage = qimage.convertToFormat(
+                QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
+            )
+
+            # May have to rescale (HiDPI displays, etc)
+            if (qimage.width(), qimage.height()) != self.__init_size:
+                qimage = (
+                    QtGui.QPixmap.fromImage(qimage)  # type: ignore
+                    .scaled(
+                        self.__init_size[0],
+                        self.__init_size[1],
+                        mode=QtCore.Qt.TransformationMode.SmoothTransformation,  # type: ignore
+                    )
+                    .toImage()
+                    .convertToFormat(
+                        QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
+                    )
+                )
+
+            self.__ffmpeg_process.stdin.write(  # pyright: ignore [reportOptionalMemberAccess]
+                qimage.constBits().tobytes()
+            )
 
     @property
     def is_hidden(self) -> bool:
@@ -575,7 +416,8 @@ class ChartsWidget:
     def close(self):
         """Closes the UI or finishes animation file recording."""
         if self.__save:
-            _close_video_process(self.__ffmpeg_process)
+            self.__ffmpeg_process.stdin.close()  # pyright: ignore [reportOptionalMemberAccess]
+            self.__ffmpeg_process.wait()
 
         if self.is_hidden:
             pg.exit()
