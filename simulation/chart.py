@@ -12,17 +12,19 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 
 class RGBAColor(NamedTuple):
-    """An RGB color value represents RED, GREEN, and BLUE light sources
-    with alpha channel- which specifies the opacity for a color."""
+    """Color model based on red, green, blue and an alpha/opacity value.
+
+    Attributes:
+        R (int): value between 0 and 255 for red value.
+        G (int): value between 0 and 255 for green value.
+        R (int): value between 0 and 255 for blue value.
+        A (int, optional): value between 0 and 255 for alpha/opacity value.
+    """
 
     R: int
-    """Red [0-255]"""
     G: int
-    """Green [0-255]"""
     B: int
-    """Blue [0-255]"""
     A: Optional[int]
-    """Alpha [0-255]"""
 
 
 # Single-character string representing a predefined color
@@ -39,7 +41,12 @@ NamedColor = Literal[
 
 
 class IndexedColor(NamedTuple):
-    """Color from a single index. Useful for stepping through a predefined list of colors."""
+    """Color from a single index. Useful for stepping through a predefined list of colors.
+
+    Attributes:
+        index (int): predefined color index
+        hues (int): number of steps to generate
+    """
 
     index: int
     hues: int
@@ -50,8 +57,8 @@ Color = Union[RGBAColor, NamedColor, IndexedColor, int, float, str]
 
 
 @multimethod
-def _make_color(color: RGBAColor) -> Any:  # pyright:ignore [reportGeneralTypeIssues]
-    """Converts RGBA color value to QColor"""
+def _make_color(color: RGBAColor):  # pyright:ignore [reportGeneralTypeIssues]
+    """Convert RGBA color value to QColor"""
     if color.A is None:
         return pg.mkColor((color.R, color.G, color.B))
     else:
@@ -59,13 +66,13 @@ def _make_color(color: RGBAColor) -> Any:  # pyright:ignore [reportGeneralTypeIs
 
 
 @multimethod
-def _make_color(color: IndexedColor) -> Any:  # pyright:ignore [reportGeneralTypeIssues]
-    """Converts Indexed color value to QColor"""
+def _make_color(color: IndexedColor):  # pyright:ignore [reportGeneralTypeIssues]
+    """Convert Indexed color value to QColor"""
     return pg.mkColor((color.index, color.hues))
 
 
 @multimethod
-def _make_color(color: Union[int, float, str]) -> Any:
+def _make_color(color: Union[int, float, str]):
     return pg.mkColor(color)
 
 
@@ -91,7 +98,7 @@ def _make_pen(
     width: Optional[float] = None,
     style: Optional[PenStyle] = None,
 ) -> Any:
-    """Creates a QPen from a parameters"""
+    """Create a QPen from provided parameters"""
     config: Dict[str, Any] = {}
 
     if color is not None:
@@ -133,6 +140,12 @@ DEFAULT_PIXEL_FORMAT = "yuv420p"
 
 
 class ChartWidget:
+    """A chart container for single group of plots and a legend.
+
+    Args:
+        chart (PlotItem): base container plotitem
+    """
+
     def __init__(self, chart: pg.PlotItem) -> None:
         self.__chart = chart
         self.__plots: Dict[str, pg.PlotDataItem] = {}
@@ -173,7 +186,7 @@ class ChartWidget:
         downsample: Optional[int] = None,
         downsampleMethod: Optional[DownsampleMethod] = None,
     ):
-        """Adds a line plot to the chart.
+        """Add a line plot to the chart.
 
         Args:
             id (str): unique id of the plot in the chart
@@ -206,7 +219,7 @@ class ChartWidget:
         downsample: Optional[int] = None,
         downsampleMethod: Optional[DownsampleMethod] = None,
     ):
-        """Adds a scatter plot to the chart.
+        """Add a scatter plot to the chart.
 
         Args:
             id (str): Unique id of the plot in the chart
@@ -241,7 +254,7 @@ class ChartWidget:
         self.__plots[id] = plot
 
     def set_data(self, id: str, *args, **kargs):
-        """Updates the plot with provided data \n
+        """Update the plot with provided data \n
         set_data(id, x, y):x, y: array_like coordinate values
         set_data(id, y): y values only – x will be automatically set to range(len(y))
         set_data(id, x=x, y=y): x and y given by keyword arguments
@@ -263,6 +276,20 @@ class ChartWidget:
 
 
 class ChartsWidget:
+    """A single column layout with each row containing a single chart
+
+    Args:
+        title (str): Title of charts window.
+        output_file (str, optional): Path of the captured video output file. If not empty, hides UI. Defaults to None.
+        output_codec (str, optional): Codec name to be used for encoding. Defaults to "libx264".
+        output_pixel_format (str, optional): Ouput pixel format. Defaults to "yuv420p".
+        size (Tuple[int,int]):(width,height) of the charts window. Defaults to 1000x1000.
+        antialias (bool, optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
+        foreground (Color, optional): General foreground color (text,ie). Defaults to None.
+        background (Color, optional): General background color. Defaults to None.
+        border (Union[bool,Tuple[int,int,int]], optional): Border between charts.`True` for default border, `False`for None or triplet of int for custom. Defaults to None.
+    """
+
     def __init__(
         self,
         title: str,
@@ -275,20 +302,6 @@ class ChartsWidget:
         background: Optional[Color] = None,
         border: Optional[Union[bool, Tuple[int, int, int]]] = None,
     ) -> None:
-        """Initialize application and layout container
-
-        Args:
-            title (str): Title of charts window.
-            output_file (str, optional): Path of the captured video output file. If not empty, hides UI. Defaults to None.
-            output_codec (str, optional): Codec name to be used for encoding. Defaults to "libx264".
-            output_pixel_format (str, optional): Ouput pixel format. Defaults to "yuv420p".
-            size (Tuple[int,int]):(width,height) of the charts window. Defaults to 1000x1000.
-            antialias (bool, optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
-            foreground (Color, optional): General foreground color (text,ie). Defaults to None.
-            background (Color, optional): General background color. Defaults to None.
-            border (Union[bool,Tuple[int,int,int]], optional): Border between charts.`True` for default border, `False`for None or triplet of int for custom. Defaults to None.
-        """
-
         self.__save = output_file is not None
 
         # Set up PyQtGraph
@@ -378,7 +391,7 @@ class ChartsWidget:
         return ChartWidget(chart)
 
     def render(self):
-        """Renders chart changes to UI or animation file."""
+        """Render chart changes to UI or animation file."""
         self.__app.processEvents()  # type: ignore
 
         if self.__save:
@@ -410,11 +423,11 @@ class ChartsWidget:
 
     @property
     def is_hidden(self) -> bool:
-        """Checks if UI is hidden. Always true when save file is defined."""
+        """Check if UI is hidden. Always true when save file is defined."""
         return self.__layout.isHidden()
 
     def close(self):
-        """Closes the UI or finishes animation file recording."""
+        """Close the UI or finish animation file recording."""
         if self.__save:
             self.__ffmpeg_process.stdin.close()  # pyright: ignore [reportOptionalMemberAccess]
             self.__ffmpeg_process.wait()
