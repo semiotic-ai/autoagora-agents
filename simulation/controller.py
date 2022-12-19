@@ -4,6 +4,8 @@
 import argparse
 import json
 
+import numpy as np
+
 from autoagora_agents.agent_factory import AgentFactory
 from environments.environment_factory import EnvironmentFactory
 
@@ -17,6 +19,11 @@ def init_simulation(parser: argparse.ArgumentParser):
     with open(args.config) as f:
         # Load the configuration.
         config = json.loads(f.read())
+
+    # Check for randomization seed value and set
+    if "random_seed" in config:
+        seed_value = config["random_seed"]
+        np.random.seed(seed_value)
 
     agents = {}
     # Instantiate agents.
