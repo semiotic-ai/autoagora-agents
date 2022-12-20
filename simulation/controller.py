@@ -5,6 +5,7 @@ import argparse
 import json
 
 import numpy as np
+import torch
 
 from autoagora_agents.agent_factory import AgentFactory
 from environments.environment_factory import EnvironmentFactory
@@ -24,6 +25,7 @@ def init_simulation(parser: argparse.ArgumentParser):
     if "random_seed" in config:
         seed_value = config["random_seed"]
         np.random.seed(seed_value)
+        torch.manual_seed(seed_value)
 
     agents = {}
     # Instantiate agents.
