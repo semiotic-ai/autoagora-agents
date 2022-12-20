@@ -97,7 +97,7 @@ def _make_pen(
     color: Optional[Color] = None,
     width: Optional[float] = None,
     style: Optional[PenStyle] = None,
-) -> Any:
+):
     """Create a QPen from provided parameters"""
     config: Dict[str, Any] = {}
 
