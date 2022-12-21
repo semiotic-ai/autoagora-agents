@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from enum import Enum
+from functools import singledispatch
 from subprocess import Popen
 from typing import Any, Dict, Literal, NamedTuple, Optional, Tuple, TypedDict, Union
 
 import ffmpeg
 import pyqtgraph as pg
-from multimethod import multimethod
 from pyqtgraph.Qt import QtCore, QtGui
 
 
@@ -56,7 +56,7 @@ Color = Union[RGBAColor, NamedColor, IndexedColor, int, float, str]
 """Color based on model, predefined values, single greyscale value (0.0 - 1.0) , color index or string representing color (“#RGB”,“#RGBA”,“#RRGGBB”,“#RRGGBBAA”)."""
 
 
-@multimethod
+@singledispatch
 def _make_color(color: RGBAColor):  # pyright:ignore [reportGeneralTypeIssues]
     """Convert RGBA color value to QColor"""
     if color.A is None:
@@ -65,13 +65,13 @@ def _make_color(color: RGBAColor):  # pyright:ignore [reportGeneralTypeIssues]
         return pg.mkColor((color.R, color.G, color.B, color.A))
 
 
-@multimethod
+@singledispatch
 def _make_color(color: IndexedColor):  # pyright:ignore [reportGeneralTypeIssues]
     """Convert Indexed color value to QColor"""
     return pg.mkColor((color.index, color.hues))
 
 
-@multimethod
+@singledispatch
 def _make_color(color: Union[int, float, str]):
     return pg.mkColor(color)
 
@@ -117,14 +117,17 @@ SymbolType = Literal["o", "x", "s"]  # dot  # cross  # square
 
 
 class PenConfig(TypedDict, total=False):
-    """Configuration for pen to draw lines"""
+    """Configuration for pen to draw lines.
+
+    Attributes:
+        width (float): width of the line
+        style (PenStyle): line style
+        color (Color): line color
+    """
 
     width: float
-    """Width of the line"""
     style: PenStyle
-    """Line style"""
     color: Color
-    """Line color"""
 
 
 # Method to resample the data before plotting ot avoid plotting multiple line segments per pixel.
@@ -149,31 +152,6 @@ class ChartWidget:
     def __init__(self, chart: pg.PlotItem) -> None:
         self.__chart = chart
         self.__plots: Dict[str, pg.PlotDataItem] = {}
-
-    @staticmethod
-    def _update_downsapling(
-        plot: pg.PlotDataItem,
-        auto: Optional[bool] = None,
-        ds: Optional[int] = None,
-        method: Optional[DownsampleMethod] = None,
-    ):
-        """Update plot downsampling parameters"""
-
-        if auto is None and ds is None and method is None:
-            return
-
-        config: Dict[str, Any] = {}
-
-        if auto is not None:
-            config["auto"] = auto
-
-        if ds is not None:
-            config["ds"] = ds
-
-        if method is not None:
-            config["method"] = method
-
-        plot.setDownsampling(**config)
 
     def add_line_plot(
         self,
@@ -201,10 +179,9 @@ class ChartWidget:
         config = {"name": name}
         config["pen"] = _make_pen(color=color, width=width, style=style)
         plot = self.__chart.plot(**config)
-        ChartWidget._update_downsapling(
-            plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
+        plot.setDownsampling(
+            ds=downsample, auto=autoDownsample, method=downsampleMethod
         )
-
         self.__plots[id] = plot
 
     def add_scatter_plot(
@@ -247,13 +224,12 @@ class ChartWidget:
             config["symbolPen"] = _make_pen(**border)
 
         plot = self.__chart.plot(**config)
-        ChartWidget._update_downsapling(
-            plot, auto=autoDownsample, ds=downsample, method=downsampleMethod
+        plot.setDownsampling(
+            ds=downsample, auto=autoDownsample, method=downsampleMethod
         )
-
         self.__plots[id] = plot
 
-    def set_data(self, id: str, *args, **kargs):
+    def set_data(self, id: str, *args, **kwargs):
         """Update the plot with provided data \n
         set_data(id, x, y):x, y: array_like coordinate values
         set_data(id, y): y values only – x will be automatically set to range(len(y))
@@ -263,7 +239,7 @@ class ChartWidget:
         Args:
             id (str): Unique id of the plot in the chart
         """
-        self.__plots[id].setData(*args, **kargs)
+        self.__plots[id].setData(*args, **kwargs)
 
     @property
     def title(self) -> str:
@@ -357,6 +333,7 @@ class ChartsWidget:
             y_label (str, optional): Label text to display next to y axis. Defaults to None.
             y_range (Tuple[float,float], optional): Constant range(min,max value) of y axis. Defaults to None.
             y_log (bool, optional): Use logarithmic scale for y axis. Defaults to None.
+
         Returns:
             ChartWidget: a chart to define and draw plots
         """
