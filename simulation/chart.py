@@ -24,7 +24,7 @@ class RGBAColor(NamedTuple):
     R: int
     G: int
     B: int
-    A: Optional[int]
+    A: Optional[int] = None
 
 
 # Single-character string representing a predefined color
@@ -72,7 +72,9 @@ def _make_color(color: IndexedColor):  # pyright:ignore [reportGeneralTypeIssues
 
 
 @singledispatch
-def _make_color(color: Union[int, float, str]):
+def _make_color(color: Union[int, float, str, None]):
+    if color is None:
+        return None
     return pg.mkColor(color)
 
 
@@ -101,8 +103,7 @@ def _make_pen(
     """Create a QPen from provided parameters"""
     config: Dict[str, Any] = {}
 
-    if color is not None:
-        config["color"] = _make_color(color)
+    config["color"] = _make_color(color)
 
     if width is not None:
         config["width"] = width
@@ -137,9 +138,33 @@ DownsampleMethod = Literal[
     "peak",  # Downsample by drawing a saw wave that follows the min and max of the original data. This method produces the best visual representation of the data but is slower.
 ]
 
+# Layout defaults
 DEFAULT_WIN_SIZE = (1000, 1000)
 DEFAULT_CODEC = "libx264"
 DEFAULT_PIXEL_FORMAT = "yuv420p"
+DEFAULT_FOREGROUND: Color = "d"
+DEFAULT_BACKGROUND: Color = "k"
+DEFAULT_ANTIALIAS = False
+
+# Chart defaults
+DEFAULT_CHART_HEIGHT = 300
+DEFAULT_LEGEND_WIDTH = 300
+DEFAULT_AXIS_LOG = False
+
+
+# Plot defaults
+DEFAULT_PEN_COLOR = RGBAColor(200, 200, 200)
+DEFAULT_PEN_WIDTH = 1.0
+DEFAULT_PEN_STYLE = PenStyle.SolidLine
+
+DEFAULT_SYMBOL_SIZE = 10.0
+DEFAULT_SYMBOL_MARKER: SymbolType = "o"
+DEFAULT_SYMBOL_PEN = PenConfig(color=DEFAULT_PEN_COLOR)
+DEFAULT_SYMBOL_COLOR = RGBAColor(50, 50, 150)
+
+DEFAULT_DOWNSAMPLE_METHOD = "peak"
+DEFAULT_DOWNSAMPLE_AMOUNT = 1
+DEFAULT_DOWNSAMMPLE_AUTO = False
 
 
 class ChartWidget:
@@ -150,72 +175,71 @@ class ChartWidget:
     """
 
     def __init__(self, chart: pg.PlotItem) -> None:
-        self.__chart = chart
-        self.__plots: Dict[str, pg.PlotDataItem] = {}
+        self._chart = chart
+        self._plots: Dict[str, pg.PlotDataItem] = {}
 
     def add_line_plot(
         self,
         id: str,
         name: str,
-        color: Optional[Color] = None,
-        width: Optional[float] = None,
-        style: Optional[PenStyle] = None,
-        autoDownsample: Optional[bool] = None,
-        downsample: Optional[int] = None,
-        downsampleMethod: Optional[DownsampleMethod] = None,
+        color: Color = DEFAULT_PEN_COLOR,
+        width: float = DEFAULT_PEN_WIDTH,
+        style: PenStyle = DEFAULT_PEN_STYLE,
+        autoDownsample: bool = DEFAULT_DOWNSAMMPLE_AUTO,
+        downsample: int = DEFAULT_DOWNSAMPLE_AMOUNT,
+        downsampleMethod: DownsampleMethod = DEFAULT_DOWNSAMPLE_METHOD,
     ):
         """Add a line plot to the chart.
 
         Args:
             id (str): unique id of the plot in the chart
             name (str): Name (legend title) of the plot
-            color (Color, optional): Line color of the plot. Defaults to None.
-            width (float, optional): Width of the plot line. Defaults to None.
-            style (PenStyle, optional): Style of the plot line. Defaults to None.
-            autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
-            downsample (int,optional): Reduce the number of samples displayed by the given factor. Defaults  to None.
-            downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
+            color (Color): Line color of the plot. Defaults to `RGBAColor(200,200,200)`.
+            width (float): Width of the plot line. Defaults to `1.0`.
+            style (PenStyle): Style of the plot line. Defaults to `Penstyle.SolidLine`.
+            autoDownsample (bool): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to `False`.
+            downsample (int): Reduce the number of samples displayed by the given factor.To disable, set to `1`. Defaults  to `1`.
+            downsampleMethod (DownsampleMethod): Method to use for downsampling. Defaults to `peak`.
         """
         config = {"name": name}
         config["pen"] = _make_pen(color=color, width=width, style=style)
-        plot = self.__chart.plot(**config)
+        plot = self._chart.plot(**config)
         plot.setDownsampling(
             ds=downsample, auto=autoDownsample, method=downsampleMethod
         )
-        self.__plots[id] = plot
+        self._plots[id] = plot
 
     def add_scatter_plot(
         self,
         id: str,
         name: str,
-        size: Optional[float] = None,
-        color: Optional[Color] = None,
-        symbol: Optional[SymbolType] = None,
-        border: Optional[PenConfig] = None,
-        autoDownsample: Optional[bool] = None,
-        downsample: Optional[int] = None,
-        downsampleMethod: Optional[DownsampleMethod] = None,
+        size: float = DEFAULT_SYMBOL_SIZE,
+        color: Color = DEFAULT_SYMBOL_COLOR,
+        symbol: SymbolType = DEFAULT_SYMBOL_MARKER,
+        border: PenConfig = DEFAULT_SYMBOL_PEN,
+        autoDownsample: bool = DEFAULT_DOWNSAMMPLE_AUTO,
+        downsample: int = DEFAULT_DOWNSAMPLE_AMOUNT,
+        downsampleMethod: DownsampleMethod = DEFAULT_DOWNSAMPLE_METHOD,
     ):
         """Add a scatter plot to the chart.
 
         Args:
             id (str): Unique id of the plot in the chart
             name (str): Name (legend title) of the plot
-            size (float, optional): Size of the marker symbol. Defaults to None.
-            color (Color, optional): Color to fill the marker symbol. Defaults to None.
-            symbol (SymbolType, optional): Shape of the marker symbol. Defaults to None.
-            border (PenConfig, optional): Pen to draw border around the marker symbol. Defaults to None.
-            autoDownsample (bool, optional): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to None.
-            downsample (int,optional): Reduce the number of samples displayed by the given factor. Defaults  to None.
-            downsampleMethod (DownsampleMethod,optional): Method to use for downsampling. Defaults to None.
+            size (float): Size of the marker symbol. Defaults to `10.0`.
+            color (Color): Color to fill the marker symbol. Defaults to `RGBAColor(50,50,150)`.
+            symbol (SymbolType): Shape of the marker symbol. Defaults to `o`.
+            border (PenConfig): Pen to draw border around the marker symbol. Defaults to `PenConfig(color=RGBAColor(200,200,200))`.
+            autoDownsample (bool): If True, resample the data before plotting to avoid plotting multiple line segments per pixel. Defaults to `False`.
+            downsample (int): Reduce the number of samples displayed by the given factor.To disable, set to `1`. Defaults  to `1`.
+            downsampleMethod (DownsampleMethod): Method to use for downsampling. Defaults to `peak`.
         """
         config = {"name": name, "pen": None}
 
         if size is not None:
             config["symbolSize"] = size
 
-        if color is not None:
-            config["symbolBrush"] = _make_color(color)
+        config["symbolBrush"] = _make_color(color)
 
         if symbol is not None:
             config["symbol"] = symbol
@@ -223,32 +247,32 @@ class ChartWidget:
         if border is not None:
             config["symbolPen"] = _make_pen(**border)
 
-        plot = self.__chart.plot(**config)
+        plot = self._chart.plot(**config)
         plot.setDownsampling(
             ds=downsample, auto=autoDownsample, method=downsampleMethod
         )
-        self.__plots[id] = plot
+        self._plots[id] = plot
 
     def set_data(self, id: str, *args, **kwargs):
         """Update the plot with provided data \n
         set_data(id, x, y):x, y: array_like coordinate values
-        set_data(id, y): y values only – x will be automatically set to range(len(y))
+        set_data(id, y): y values only - x will be automatically set to range(len(y))
         set_data(id, x=x, y=y): x and y given by keyword arguments
         set_data(id, ndarray(N,2)): single numpy array with shape (N, 2), where x=data[:,0] and y=data[:,1]
 
         Args:
             id (str): Unique id of the plot in the chart
         """
-        self.__plots[id].setData(*args, **kwargs)
+        self._plots[id].setData(*args, **kwargs)
 
     @property
     def title(self) -> str:
         """Title of the chart (get/set)"""
-        return self.__chart.titleLabel.text
+        return self._chart.titleLabel.text
 
     @title.setter
     def title(self, val: str):
-        self.__chart.setTitle(title=val)
+        self._chart.setTitle(title=val)
 
 
 class ChartsWidget:
@@ -256,14 +280,14 @@ class ChartsWidget:
 
     Args:
         title (str): Title of charts window.
-        output_file (str, optional): Path of the captured video output file. If not empty, hides UI. Defaults to None.
-        output_codec (str, optional): Codec name to be used for encoding. Defaults to "libx264".
-        output_pixel_format (str, optional): Ouput pixel format. Defaults to "yuv420p".
-        size (Tuple[int,int]):(width,height) of the charts window. Defaults to 1000x1000.
-        antialias (bool, optional): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to None.
-        foreground (Color, optional): General foreground color (text,ie). Defaults to None.
-        background (Color, optional): General background color. Defaults to None.
-        border (Union[bool,Tuple[int,int,int]], optional): Border between charts.`True` for default border, `False`for None or triplet of int for custom. Defaults to None.
+        output_file (str, optional): Path of the captured video output file. If not `None`, hides UI. Defaults to `None`.
+        output_codec (str): Codec name to be used for encoding. Defaults to `libx264`.
+        output_pixel_format (str): Ouput pixel format. Defaults to `yuv420p`.
+        size (Tuple[int,int]):(width,height) of the charts window. Defaults to `1000x1000`.
+        antialias (bool): Use antialiasing. If true, smooth visuals and slower refresh rate. Defaults to `False`.
+        foreground (Color): General foreground color (text,ie). Defaults to `d`.
+        background (Color): General background color. Defaults to `k`.
+        border (Union[bool,Tuple[int,int,int]], optional): Border between charts.`True` for default border, `False`for None or triplet of int for custom. Defaults to `None`.
     """
 
     def __init__(
@@ -273,12 +297,12 @@ class ChartsWidget:
         output_codec: str = DEFAULT_CODEC,
         output_pixel_format: str = DEFAULT_PIXEL_FORMAT,
         size: Tuple[int, int] = DEFAULT_WIN_SIZE,
-        antialias: Optional[bool] = None,
-        foreground: Optional[Color] = None,
-        background: Optional[Color] = None,
-        border: Optional[Union[bool, Tuple[int, int, int]]] = None,
+        antialias: bool = DEFAULT_ANTIALIAS,
+        foreground: Color = DEFAULT_FOREGROUND,
+        background: Color = DEFAULT_BACKGROUND,
+        border: Union[bool, Tuple[int, int, int], None] = None,
     ) -> None:
-        self.__save = output_file is not None
+        self._save = output_file is not None
 
         # Set up PyQtGraph
         if foreground is not None:
@@ -288,16 +312,16 @@ class ChartsWidget:
         if antialias is not None:
             pg.setConfigOptions(antialias=antialias)
 
-        self.__app = pg.mkQApp(title)
+        self._app = pg.mkQApp(title)
 
-        self.__layout = pg.GraphicsLayoutWidget(
-            show=not self.__save, title=title, size=size, border=border
+        self._layout = pg.GraphicsLayoutWidget(
+            show=not self._save, title=title, size=size, border=border
         )
 
-        self.__init_size = size
+        self._init_size = size
 
         if output_file is not None:
-            self.__ffmpeg_process: Popen = (
+            self._ffmpeg_process: Popen = (
                 ffmpeg.input(
                     "pipe:",
                     format="rawvideo",
@@ -312,80 +336,75 @@ class ChartsWidget:
     def create_chart(
         self,
         title: Optional[str] = None,
-        height: Optional[int] = None,
+        height: int = DEFAULT_CHART_HEIGHT,
         legend_width: Optional[int] = None,
         x_label: Optional[str] = None,
         x_range: Optional[Tuple[float, float]] = None,
-        x_log: Optional[bool] = None,
+        x_log: Optional[bool] = DEFAULT_AXIS_LOG,
         y_label: Optional[str] = None,
         y_range: Optional[Tuple[float, float]] = None,
-        y_log: Optional[bool] = None,
+        y_log: Optional[bool] = DEFAULT_AXIS_LOG,
     ) -> ChartWidget:
         """Add a chart with legend for plots as a row
 
         Args:
             title (str, optional): Title to display on the top. Defaults to None.
-            height (int, optional): Prefred height. Defaults to None.
-            legend_width (int, optional):Legend width. Defaults to None.
-            x_label (str, optional): Label text to display under x axis. Defaults to None.
-            x_range (Tuple[float,float], optional): Constant range(min,max value) of x axis. Defaults to None.
-            x_log (bool, optional): Use logarithmic scale to display x axis. Defaults to None.
-            y_label (str, optional): Label text to display next to y axis. Defaults to None.
-            y_range (Tuple[float,float], optional): Constant range(min,max value) of y axis. Defaults to None.
-            y_log (bool, optional): Use logarithmic scale for y axis. Defaults to None.
+            height (int): Prefered height scale factor.Defaults to `300`.
+            legend_width (int): Legend width. Defaults to `300`.
+            x_label (str, optional): Label text to display under x axis. Defaults to `None`.
+            x_range (Tuple[float,float], optional): Constant range(min,max value) of x axis. For dynamic range, set to `None`. Defaults to `None`.
+            x_log (bool): Use logarithmic scale to display x axis. Defaults to `False`.
+            y_label (str, optional): Label text to display next to y axis. Defaults to `None`.
+            y_range (Tuple[float,float], optional): Constant range(min,max value) of y axis. For dynamic range, set to `None`. Defaults to `None`.
+            y_log (bool): Use logarithmic scale for y axis. Defaults to `False`.
 
         Returns:
             ChartWidget: a chart to define and draw plots
         """
 
-        chart = self.__layout.addPlot(title=title)
-        if height is not None:
-            chart.setPreferredHeight(300)
+        chart = self._layout.addPlot(title=title)
+        chart.setPreferredHeight(height)
         legend = chart.addLegend(offset=None)
-        vb: pg.ViewBox = self.__layout.addViewBox()
-        if legend_width is not None:
-            vb.setFixedWidth(legend_width)
+        vb: pg.ViewBox = self._layout.addViewBox()
+        vb.setFixedWidth(legend_width)
         legend.setParentItem(vb)
         legend.anchor((0, 0), (0, 0))
         chart.setClipToView(True)
+        chart.setLogMode(x=x_log, y=y_log)
 
         if x_label is not None:
             chart.setLabel("bottom", x_label)
-        if x_log is not None:
-            chart.setLogMode(x=x_log)
         if x_range is not None:
             chart.setXRange(*x_range)
 
         if y_label is not None:
             chart.setLabel("left", y_label)
-        if y_log is not None:
-            chart.setLogMode(y=y_log)
         if y_range is not None:
             chart.setYRange(*y_range)
 
-        self.__layout.nextRow()
+        self._layout.nextRow()
 
         return ChartWidget(chart)
 
     def render(self):
         """Render chart changes to UI or animation file."""
-        self.__app.processEvents()  # type: ignore
+        self._app.processEvents()  # type: ignore
 
-        if self.__save:
+        if self._save:
             # Renders a frame by capturing plots drawn on the layout.Re-scales if required based on the size.
-            qimage = self.__layout.grab().toImage()
+            qimage = self._layout.grab().toImage()
 
             qimage = qimage.convertToFormat(
                 QtGui.QImage.Format_RGB888, QtCore.Qt.AutoColor  # type: ignore
             )
 
             # May have to rescale (HiDPI displays, etc)
-            if (qimage.width(), qimage.height()) != self.__init_size:
+            if (qimage.width(), qimage.height()) != self._init_size:
                 qimage = (
                     QtGui.QPixmap.fromImage(qimage)  # type: ignore
                     .scaled(
-                        self.__init_size[0],
-                        self.__init_size[1],
+                        self._init_size[0],
+                        self._init_size[1],
                         mode=QtCore.Qt.TransformationMode.SmoothTransformation,  # type: ignore
                     )
                     .toImage()
@@ -394,20 +413,20 @@ class ChartsWidget:
                     )
                 )
 
-            self.__ffmpeg_process.stdin.write(  # pyright: ignore [reportOptionalMemberAccess]
+            self._ffmpeg_process.stdin.write(  # pyright: ignore [reportOptionalMemberAccess]
                 qimage.constBits().tobytes()
             )
 
     @property
     def is_hidden(self) -> bool:
         """Check if UI is hidden. Always true when save file is defined."""
-        return self.__layout.isHidden()
+        return self._layout.isHidden()
 
     def close(self):
         """Close the UI or finish animation file recording."""
-        if self.__save:
-            self.__ffmpeg_process.stdin.close()  # pyright: ignore [reportOptionalMemberAccess]
-            self.__ffmpeg_process.wait()
+        if self._save:
+            self._ffmpeg_process.stdin.close()  # pyright: ignore [reportOptionalMemberAccess]
+            self._ffmpeg_process.wait()
 
         if self.is_hidden:
             pg.exit()
