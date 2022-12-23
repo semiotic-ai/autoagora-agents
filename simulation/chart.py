@@ -330,7 +330,7 @@ class ChartsWidget:
         self,
         title: Optional[str] = None,
         height: int = DEFAULT_CHART_HEIGHT,
-        legend_width: Optional[int] = None,
+        legend_width: int = DEFAULT_LEGEND_WIDTH,
         x_label: Optional[str] = None,
         x_range: Optional[Tuple[float, float]] = None,
         x_log: Optional[bool] = DEFAULT_AXIS_LOG,

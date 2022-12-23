@@ -47,29 +47,24 @@ async def main():
     policy_chart = charts.create_chart(
         title="time 0",
         height=300,
-        legend_width=300,
         x_label="Price multiplier",
         y_label="Query rate",
         x_log=True,
         y_range=(0, 1.3),
     )
 
-    query_rate_chart = charts.create_chart(
-        legend_width=300, x_label="Timestep", y_label="Query rate"
-    )
+    query_rate_chart = charts.create_chart(x_label="Timestep", y_label="Query rate")
 
     total_queries_chart = charts.create_chart(
-        legend_width=300, x_label="Timestep", y_label="Total queries"
+        x_label="Timestep", y_label="Total queries"
     )
 
     # Create revenue rate plot
-    revenue_rate_chart = charts.create_chart(
-        legend_width=300, x_label="Timestep", y_label="Revenue rate"
-    )
+    revenue_rate_chart = charts.create_chart(x_label="Timestep", y_label="Revenue rate")
 
     # Create total revenue plot
     total_revenue_chart = charts.create_chart(
-        legend_width=300, x_label="Timestep", y_label="Total revenue"
+        x_label="Timestep", y_label="Total revenue"
     )
 
     for i, agent_name in enumerate(agents.keys()):
