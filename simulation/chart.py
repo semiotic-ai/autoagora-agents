@@ -147,7 +147,7 @@ DEFAULT_BACKGROUND: Color = "k"
 DEFAULT_ANTIALIAS = False
 
 # Chart defaults
-DEFAULT_CHART_HEIGHT = 300
+DEFAULT_CHART_HEIGHT = 200
 DEFAULT_LEGEND_WIDTH = 300
 DEFAULT_AXIS_LOG = False
 
@@ -234,18 +234,14 @@ class ChartWidget:
             downsample (int): Reduce the number of samples displayed by the given factor.To disable, set to `1`. Defaults  to `1`.
             downsampleMethod (DownsampleMethod): Method to use for downsampling. Defaults to `peak`.
         """
-        config = {"name": name, "pen": None}
-
-        if size is not None:
-            config["symbolSize"] = size
-
-        config["symbolBrush"] = _make_color(color)
-
-        if symbol is not None:
-            config["symbol"] = symbol
-
-        if border is not None:
-            config["symbolPen"] = _make_pen(**border)
+        config = {
+            "name": name,
+            "pen": None,
+            "symbolSize": size,
+            "symbolBrush": _make_color(color),
+            "symbol": symbol,
+            "symbolPen": _make_pen(**border),
+        }
 
         plot = self._chart.plot(**config)
         plot.setDownsampling(
@@ -305,12 +301,9 @@ class ChartsWidget:
         self._save = output_file is not None
 
         # Set up PyQtGraph
-        if foreground is not None:
-            pg.setConfigOption("foreground", _make_color(foreground))
-        if background is not None:
-            pg.setConfigOption("background", _make_color(background))
-        if antialias is not None:
-            pg.setConfigOptions(antialias=antialias)
+        pg.setConfigOption("foreground", _make_color(foreground))
+        pg.setConfigOption("background", _make_color(background))
+        pg.setConfigOptions(antialias=antialias)
 
         self._app = pg.mkQApp(title)
 
@@ -349,7 +342,7 @@ class ChartsWidget:
 
         Args:
             title (str, optional): Title to display on the top. Defaults to None.
-            height (int): Prefered height scale factor.Defaults to `300`.
+            height (int): Prefered height scale factor.Defaults to `200`.
             legend_width (int): Legend width. Defaults to `300`.
             x_label (str, optional): Label text to display under x axis. Defaults to `None`.
             x_range (Tuple[float,float], optional): Constant range(min,max value) of x axis. For dynamic range, set to `None`. Defaults to `None`.
