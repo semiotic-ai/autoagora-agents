@@ -4,7 +4,7 @@
 from enum import Enum
 from functools import singledispatch
 from subprocess import Popen
-from typing import Any, Dict, Literal, NamedTuple, Optional, Tuple, TypedDict, Union
+from typing import Dict, Literal, NamedTuple, Optional, Tuple, TypedDict, Union
 
 import ffmpeg
 import pyqtgraph as pg
@@ -18,7 +18,7 @@ class RGBAColor(NamedTuple):
         R (int): value between 0 and 255 for red value.
         G (int): value between 0 and 255 for green value.
         R (int): value between 0 and 255 for blue value.
-        A (int, optional): value between 0 and 255 for alpha/opacity value.Default is `255`
+        A (int): value between 0 and 255 for alpha/opacity value.Default is `255`
     """
 
     R: int
@@ -69,9 +69,7 @@ def _make_color(color: IndexedColor):  # pyright:ignore [reportGeneralTypeIssues
 
 
 @singledispatch
-def _make_color(color: Union[int, float, str, None]):
-    if color is None:
-        return None
+def _make_color(color: Union[int, float, str]):
     return pg.mkColor(color)
 
 
@@ -328,10 +326,10 @@ class ChartsWidget:
         legend_width: int = DEFAULT_LEGEND_WIDTH,
         x_label: Optional[str] = None,
         x_range: Optional[Tuple[float, float]] = None,
-        x_log: Optional[bool] = DEFAULT_AXIS_LOG,
+        x_log: bool = DEFAULT_AXIS_LOG,
         y_label: Optional[str] = None,
         y_range: Optional[Tuple[float, float]] = None,
-        y_log: Optional[bool] = DEFAULT_AXIS_LOG,
+        y_log: bool = DEFAULT_AXIS_LOG,
     ) -> ChartWidget:
         """Add a chart with legend for plots as a row
 
