@@ -18,13 +18,13 @@ class RGBAColor(NamedTuple):
         R (int): value between 0 and 255 for red value.
         G (int): value between 0 and 255 for green value.
         R (int): value between 0 and 255 for blue value.
-        A (int, optional): value between 0 and 255 for alpha/opacity value.
+        A (int, optional): value between 0 and 255 for alpha/opacity value.Default is `255`
     """
 
     R: int
     G: int
     B: int
-    A: Optional[int] = None
+    A: int = 255
 
 
 # Single-character string representing a predefined color
@@ -59,10 +59,7 @@ Color = Union[RGBAColor, NamedColor, IndexedColor, int, float, str]
 @singledispatch
 def _make_color(color: RGBAColor):  # pyright:ignore [reportGeneralTypeIssues]
     """Convert RGBA color value to QColor"""
-    if color.A is None:
-        return pg.mkColor((color.R, color.G, color.B))
-    else:
-        return pg.mkColor((color.R, color.G, color.B, color.A))
+    return pg.mkColor((color.R, color.G, color.B, color.A))
 
 
 @singledispatch
@@ -95,22 +92,23 @@ class PenStyle(Enum):
     # MPenStyle                = QtCore.Qt.PenStyle.MPenStyle
 
 
+# Pen defaults
+DEFAULT_PEN_COLOR = RGBAColor(200, 200, 200)
+DEFAULT_PEN_WIDTH = 1.0
+DEFAULT_PEN_STYLE = PenStyle.SolidLine
+
+
 def _make_pen(
-    color: Optional[Color] = None,
-    width: Optional[float] = None,
-    style: Optional[PenStyle] = None,
+    color: Color = DEFAULT_PEN_COLOR,
+    width: float = DEFAULT_PEN_WIDTH,
+    style: PenStyle = DEFAULT_PEN_STYLE,
 ):
     """Create a QPen from provided parameters"""
-    config: Dict[str, Any] = {}
-
-    config["color"] = _make_color(color)
-
-    if width is not None:
-        config["width"] = width
-
-    if style is not None:
-        config["style"] = style.value
-
+    config = {
+        "color": _make_color(color),
+        "width": width,
+        "style": style.value,
+    }
     return pg.mkPen(**config)
 
 
@@ -153,9 +151,6 @@ DEFAULT_AXIS_LOG = False
 
 
 # Plot defaults
-DEFAULT_PEN_COLOR = RGBAColor(200, 200, 200)
-DEFAULT_PEN_WIDTH = 1.0
-DEFAULT_PEN_STYLE = PenStyle.SolidLine
 
 DEFAULT_SYMBOL_SIZE = 10.0
 DEFAULT_SYMBOL_MARKER: SymbolType = "o"
