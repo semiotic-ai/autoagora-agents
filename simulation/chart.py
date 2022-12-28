@@ -74,7 +74,16 @@ def _make_color(color: Union[int, float, str]):
 
 
 class PenStyle(Enum):
-    """Pen style for drawing lines"""
+    """Pen style for drawing lines
+
+
+    Attributes:
+        SolidLine: simple solid line
+        DashLine: all dashed line
+        DotLine: all dotted line
+        DashDotLine: dash dot pattern line
+        DashDotDotLine: dash dot dot pattern line
+    """
 
     # NoPen                    = QtCore.Qt.PenStyle.NoPen
     SolidLine = QtCore.Qt.PenStyle.SolidLine  # pyright:ignore [reportGeneralTypeIssues]
@@ -90,16 +99,10 @@ class PenStyle(Enum):
     # MPenStyle                = QtCore.Qt.PenStyle.MPenStyle
 
 
-# Pen defaults
-DEFAULT_PEN_COLOR = RGBAColor(200, 200, 200)
-DEFAULT_PEN_WIDTH = 1.0
-DEFAULT_PEN_STYLE = PenStyle.SolidLine
-
-
 def _make_pen(
-    color: Color = DEFAULT_PEN_COLOR,
-    width: float = DEFAULT_PEN_WIDTH,
-    style: PenStyle = DEFAULT_PEN_STYLE,
+    color: Color = RGBAColor(200, 200, 200),
+    width: float = 1.0,
+    style: PenStyle = PenStyle.SolidLine,
 ):
     """Create a QPen from provided parameters"""
     config = {
@@ -134,31 +137,6 @@ DownsampleMethod = Literal[
     "peak",  # Downsample by drawing a saw wave that follows the min and max of the original data. This method produces the best visual representation of the data but is slower.
 ]
 
-# Layout defaults
-DEFAULT_WIN_SIZE = (1000, 1000)
-DEFAULT_CODEC = "libx264"
-DEFAULT_PIXEL_FORMAT = "yuv420p"
-DEFAULT_FOREGROUND: Color = "d"
-DEFAULT_BACKGROUND: Color = "k"
-DEFAULT_ANTIALIAS = False
-
-# Chart defaults
-DEFAULT_CHART_HEIGHT = 200
-DEFAULT_LEGEND_WIDTH = 300
-DEFAULT_AXIS_LOG = False
-
-
-# Plot defaults
-
-DEFAULT_SYMBOL_SIZE = 10.0
-DEFAULT_SYMBOL_MARKER: SymbolType = "o"
-DEFAULT_SYMBOL_PEN = PenConfig(color=DEFAULT_PEN_COLOR)
-DEFAULT_SYMBOL_COLOR = RGBAColor(50, 50, 150)
-
-DEFAULT_DOWNSAMPLE_METHOD = "peak"
-DEFAULT_DOWNSAMPLE_AMOUNT = 1
-DEFAULT_DOWNSAMMPLE_AUTO = False
-
 
 class ChartWidget:
     """A chart container for single group of plots and a legend.
@@ -175,12 +153,12 @@ class ChartWidget:
         self,
         id: str,
         name: str,
-        color: Color = DEFAULT_PEN_COLOR,
-        width: float = DEFAULT_PEN_WIDTH,
-        style: PenStyle = DEFAULT_PEN_STYLE,
-        autoDownsample: bool = DEFAULT_DOWNSAMMPLE_AUTO,
-        downsample: int = DEFAULT_DOWNSAMPLE_AMOUNT,
-        downsampleMethod: DownsampleMethod = DEFAULT_DOWNSAMPLE_METHOD,
+        color: Color = RGBAColor(200, 200, 200),
+        width: float = 1.0,
+        style: PenStyle = PenStyle.SolidLine,
+        autoDownsample: bool = False,
+        downsample: int = 1,
+        downsampleMethod: DownsampleMethod = "peak",
     ):
         """Add a line plot to the chart.
 
@@ -206,13 +184,13 @@ class ChartWidget:
         self,
         id: str,
         name: str,
-        size: float = DEFAULT_SYMBOL_SIZE,
-        color: Color = DEFAULT_SYMBOL_COLOR,
-        symbol: SymbolType = DEFAULT_SYMBOL_MARKER,
-        border: PenConfig = DEFAULT_SYMBOL_PEN,
-        autoDownsample: bool = DEFAULT_DOWNSAMMPLE_AUTO,
-        downsample: int = DEFAULT_DOWNSAMPLE_AMOUNT,
-        downsampleMethod: DownsampleMethod = DEFAULT_DOWNSAMPLE_METHOD,
+        size: float = 10.0,
+        color: Color = RGBAColor(50, 50, 150),
+        symbol: SymbolType = "o",
+        border: PenConfig = PenConfig(color=RGBAColor(200, 200, 200)),
+        autoDownsample: bool = False,
+        downsample: int = 1,
+        downsampleMethod: DownsampleMethod = "peak",
     ):
         """Add a scatter plot to the chart.
 
@@ -283,12 +261,12 @@ class ChartsWidget:
         self,
         title: str,
         output_file: Optional[str] = None,
-        output_codec: str = DEFAULT_CODEC,
-        output_pixel_format: str = DEFAULT_PIXEL_FORMAT,
-        size: Tuple[int, int] = DEFAULT_WIN_SIZE,
-        antialias: bool = DEFAULT_ANTIALIAS,
-        foreground: Color = DEFAULT_FOREGROUND,
-        background: Color = DEFAULT_BACKGROUND,
+        output_codec: str = "libx264",
+        output_pixel_format: str = "yuv420p",
+        size: Tuple[int, int] = (1000, 1000),
+        antialias: bool = False,
+        foreground: Color = "d",
+        background: Color = "k",
         border: Union[bool, Tuple[int, int, int], None] = None,
     ) -> None:
         self._save = output_file is not None
@@ -322,19 +300,19 @@ class ChartsWidget:
     def create_chart(
         self,
         title: Optional[str] = None,
-        height: int = DEFAULT_CHART_HEIGHT,
-        legend_width: int = DEFAULT_LEGEND_WIDTH,
+        height: int = 200,
+        legend_width: int = 300,
         x_label: Optional[str] = None,
         x_range: Optional[Tuple[float, float]] = None,
-        x_log: bool = DEFAULT_AXIS_LOG,
+        x_log: bool = False,
         y_label: Optional[str] = None,
         y_range: Optional[Tuple[float, float]] = None,
-        y_log: bool = DEFAULT_AXIS_LOG,
+        y_log: bool = False,
     ) -> ChartWidget:
         """Add a chart with legend for plots as a row
 
         Args:
-            title (str, optional): Title to display on the top. Defaults to None.
+            title (str, optional): Title to display on the top. Defaults to `None`.
             height (int): Prefered height scale factor.Defaults to `200`.
             legend_width (int): Legend width. Defaults to `300`.
             x_label (str, optional): Label text to display under x axis. Defaults to `None`.
