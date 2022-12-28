@@ -11,6 +11,16 @@ from autoagora_agents.agent_factory import AgentFactory
 from environments.environment_factory import EnvironmentFactory
 
 
+def set_random_seed(seed: int):
+    """Sets the seed value for consistent random number generation
+
+    Args:
+        seed (int): The desired seed.
+    """
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
 def init_simulation(parser: argparse.ArgumentParser):
 
     # Parse arguments.
@@ -24,8 +34,7 @@ def init_simulation(parser: argparse.ArgumentParser):
     # Check for randomization seed value and set
     if "random_seed" in config:
         seed_value = config["random_seed"]
-        np.random.seed(seed_value)
-        torch.manual_seed(seed_value)
+        set_random_seed(seed_value)
 
     agents = {}
     # Instantiate agents.
