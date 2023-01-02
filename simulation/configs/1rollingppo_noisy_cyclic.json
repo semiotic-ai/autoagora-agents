@@ -22,5 +22,6 @@
             "cycle": 1000,
             "noise": true
         }
-    }
+    },
+    "random_seed":42
 }

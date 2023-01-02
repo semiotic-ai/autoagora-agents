@@ -15,5 +15,6 @@
         "NoisySharedSubgraph": {
             "noise": true
         }
-    }
+    },
+    "random_seed":42
 }
