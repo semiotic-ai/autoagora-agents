@@ -3,7 +3,10 @@
 
 import argparse
 import logging
+import os
 from asyncio import run
+
+from torch.utils.tensorboard.writer import SummaryWriter
 
 from environments.simulated_subgraph import SimulatedSubgraph
 from simulation.chart import ChartsWidget, IndexedColor, PenConfig, PenStyle
@@ -14,6 +17,17 @@ logging.basicConfig(level="WARN", format="%(message)s")
 
 LOG_PLOT = True
 WINDOW_SIZE = (1000, 1000)
+
+try:
+    import socket
+    from datetime import datetime
+
+    current_time = datetime.now().strftime("%b%d_%H-%M-%S")
+    log_dir = os.path.join("runs", current_time + "_" + socket.gethostname())
+
+    writer = SummaryWriter(log_dir)
+except:
+    writer = SummaryWriter()
 
 
 async def main():
@@ -129,6 +143,7 @@ async def main():
         for agent_id, (agent_name, agent) in enumerate(agents.items()):
             # 1. Get bid from the agent (action)
             scaled_bids.append(agent.get_action())
+
             if agent_id == 0:
                 logging.debug("Agent %s action: %s", agent_id, scaled_bids[agent_id])
 
@@ -136,6 +151,8 @@ async def main():
             await environment.set_cost_multiplier(
                 scaled_bids[agent_id], agent_id=agent_id
             )
+
+            writer.add_scalar(f"Scaled Bids/Agent {agent_id}", scaled_bids[agent_id], i)
 
         # Make a step. (Executes a number of queries in the case of the ISA)
         environment.step()
@@ -147,8 +164,20 @@ async def main():
             queries_per_second[agent_id] += [
                 await environment.queries_per_second(agent_id=agent_id)
             ]
+
+            writer.add_scalar(
+                f"Queries per second/Agent {agent_id}",
+                queries_per_second[agent_id][-1],
+                i,
+            )
+
             # Turn it into "monies".
             monies_per_second = queries_per_second[agent_id][-1] * scaled_bids[agent_id]
+
+            writer.add_scalar(
+                f"Monies per second/Agent {agent_id}", monies_per_second, i
+            )
+
             # Add reward.
             agent.add_reward(monies_per_second)
 
@@ -160,6 +189,10 @@ async def main():
             else:
                 total_revenue_data[agent_id] += [revenue_rate_data[agent_id][-1]]
 
+            writer.add_scalar(
+                f"Monies/Agent {agent_id}", total_revenue_data[agent_id][-1], i
+            )
+
             # 4. Update the policy.
             if True:  # agent_id == 0:
                 if hasattr(agent, "reward_buffer"):
@@ -168,26 +201,46 @@ async def main():
                         agent_id,
                         agent.reward_buffer,
                     )
+
+                    writer.add_scalar(
+                        f"Reward Buffer/Agent {agent_id}", agent.reward_buffer[-1], i
+                    )
+
                     logging.debug(
                         "Agent %s action_buffer = %s",
                         agent_id,
                         agent.action_buffer,
                     )
+
+                    writer.add_scalar(
+                        f"Action Buffer/Agent {agent_id}", agent.action_buffer[-1], i
+                    )
+
                 if hasattr(agent, "mean"):
+                    agent_mean = agent.mean()
+                    agent_stddev = agent.stddev()
+                    agent_initial_mean = agent.mean(initial=True)
+
                     logging.debug(
                         "Agent %s mean = %s",
                         agent_id,
-                        agent.mean(),
+                        agent_mean,
                     )
                     logging.debug(
                         f"Agent %s stddev = %s",
                         agent_id,
-                        agent.stddev(),
+                        agent_stddev,
                     )
                     logging.debug(
                         f"Agent %s initial_mean = %s",
                         agent_id,
-                        agent.mean(initial=True),
+                        agent_initial_mean,
+                    )
+
+                    writer.add_scalar(f"Mean/Agent {agent_id}", agent_mean, i)
+                    writer.add_scalar(f"StdDev/Agent {agent_id}", agent_stddev, i)
+                    writer.add_scalar(
+                        f"Init Mean/Agent {agent_id}", agent_initial_mean, i
                     )
 
                 logging.debug(
@@ -197,6 +250,10 @@ async def main():
                 )
             loss = agent.update_policy()
             logging.debug(f"Agent %s loss = %s", agent_id, loss)
+
+            loss and writer.add_scalar(
+                f"Loss/Agent {agent_id}", loss, i
+            )  # pyright: ignore [reportUnusedExpression]
 
             # Agents total queries served (for the plots)
             if i > 0:
