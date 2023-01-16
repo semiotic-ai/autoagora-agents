@@ -18,10 +18,10 @@ def experiment(*, name: str, spath: str, apath: str):
     Returns:
         sacred.Experiment: The constructed sacred experiment object.
     """
-    ex = sacred.Experiment(name)
     names = ("simulation_ingredient", "algorithm_ingredient")
     paths = (spath, apath)
     ii = tuple(map(lambda n, p: importn(n, p), names, paths))
+    ex = sacred.Experiment(name, ingredients=ii)
     return ex
 
 
