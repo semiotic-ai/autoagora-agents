@@ -3,11 +3,11 @@
 
 import pytest
 
-import configlib
+import experiment
 
 
 def test_importn():
-    assert configlib.config.importn("foo", "tests/configlib/helper.py") == "foo"
+    assert experiment.config.importn("foo", "tests/experiment/helper.py") == "foo"
 
 
 # TODO: Need to specify what default configs look like first
