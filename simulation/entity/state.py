@@ -41,7 +41,10 @@ class State:
 
 
 class PriceState(State):
-    """The price of each query type."""
+    """The price of each query type.
+
+    Use "price" as the "kind" of state in the config.
+    """
 
     def __init__(self, *, low: float, high: float, initial: NDArray) -> None:
         super().__init__(low=low, high=high, initial=initial)
@@ -51,6 +54,8 @@ class BudgetState(State):
     """The budget across all queries.
 
     The default budget in the studio is 0.003.
+
+    Use "budget" as the "kind" of state in the config.
     """
 
     def __init__(self, *, low: float, high: float, initial: NDArray) -> None:
