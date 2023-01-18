@@ -3,4 +3,4 @@
 
 from experiment.config import experiment
 from experiment.factory import factory
-from experiment.array import inbounds
+from experiment.array import inbounds, applybounds

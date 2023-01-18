@@ -15,3 +15,16 @@ def inbounds(a: np.ndarray, l: float, h: float) -> np.bool_:
         h (float): The upper bound
     """
     return ((a >= l) & (a <= h)).all()
+
+
+def applybounds(a: np.ndarray, l: float, h: float) -> np.ndarray:
+    """Set out of bounds values to be between bounds.
+
+    Bounds are inclusive.
+
+    Arguments:
+        a (np.ndarray): The array to which to apply bounds.
+        l (float): The lower bound
+        h (float): The upper bound
+    """
+    return np.minimum(np.maximum(a, l), h)
