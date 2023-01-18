@@ -7,11 +7,24 @@
    :parser: myst_parser.sphinx_
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Installation:
 
-   installation
+   installation/sources
 
-   model_generation
+.. toctree::
+   :maxdepth: 1
+   :caption: API Documentation
 
-   price_multiplier
+   api/agents
+   api/environments
+   api/optimizer
+   api/chart
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Simulation
+
+   sim/controller
+   sim/scripts
+

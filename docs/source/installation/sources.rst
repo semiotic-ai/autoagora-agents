@@ -1,7 +1,3 @@
-Installation
-============
-
-
 From sources
 ------------
 

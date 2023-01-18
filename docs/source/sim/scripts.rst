@@ -1,6 +1,15 @@
 Scripts
 =======
 
+multi_agent_simulation.py
+--------------------------
+Trains multiple agents based on the provided configuration file and plots agents and environment metrics. See simulation/configs folder for available configurations.
+
+.. code:: bash
+
+   poetry run python simulation/multi_agent_simulation.py -c simulation/configs/3different_agents_noisy_cyclic.json
+
+
 show_simulated_subgraph.py
 --------------------------
 
@@ -8,7 +17,7 @@ Plots the environment (queries/s as a function of price multiplier) and exports 
 
 .. code:: bash
 
-   poetry run python bandit_scripts/show_simulated_subgraph.py 
+   poetry run python simulation/show_simulated_subgraph.py 
 
 
 show_bandit.py
@@ -18,7 +27,7 @@ Trains one of bandits on a selected simulated environment. Plots the agent polic
 
 .. code:: bash
 
-   poetry run python bandit_scripts/show_bandit.py
+   poetry run python simulation/show_bandit.py
 
 
 train_bandit.py
@@ -28,4 +37,4 @@ Trains one of bandits on a selected simulated environment. Monitors various vari
 
 .. code:: bash
 
-   poetry run python bandit_scripts/train_bandit.py 
+   poetry run python simulation/train_bandit.py 
