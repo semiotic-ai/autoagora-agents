@@ -26,8 +26,7 @@ def experiment(*, name: str, spath: str, apath: str):
 
 
 def importn(n: str, p: str):
-    """
-    Import a given item from the python file at the specified path.
+    """Import a given item from the python file at the specified path.
 
     Arguments:
         n (str): The name of the item to import

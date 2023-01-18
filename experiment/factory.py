@@ -1,19 +1,18 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Callable
+from typing import Callable, Any
 
 
-def factory(n: str, d: dict[str, Callable], *args, **kwargs) -> object:
-    """
-    Construct an object from the factory.
+def factory(n: str, d: dict[str, Callable], *args, **kwargs) -> Any:
+    """Construct an object from the factory.
 
     Arguments:
-        n (str): The name of object to create.
-        d (dict[str, Callable]): A mapping between names and object constructors.
+        n (str): The name of associated with the function to call.
+        d (dict[str, Callable]): A mapping between names and callables.
 
     Returns:
-        object: The constructed object.
+        Any: The value returned by the callable.
 
     Raises:
         NotImplementedError: If the dictionary does not contain the requested object constructor.
