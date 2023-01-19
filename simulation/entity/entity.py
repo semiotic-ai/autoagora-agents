@@ -1,8 +1,6 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from gymnasium import spaces
-from numpy._typing import NDArray
 import experiment
 from simulation.entity import statefactory, actionfactory
 
@@ -18,7 +16,7 @@ class Entity:
         state_space (spaces.Space): The state space of the entity.
     """
 
-    def __init__(self, *, group: str, i: int, state: dict) -> None:
+    def __init__(self, *, group: str, i: int, state: dict, **kwargs) -> None:
         self.group = group
         self.i = i
         self.name = f"{group}_{i}"
@@ -32,7 +30,9 @@ class Agent(Entity):
         action (Action): The action taken by the agent
     """
 
-    def __init__(self, *, group: str, i: int, state: dict, action: dict) -> None:
+    def __init__(
+        self, *, group: str, i: int, state: dict, action: dict, **kwargs
+    ) -> None:
         super().__init__(group=group, i=i, state=state)
         self.action = actionfactory(**action)
 
