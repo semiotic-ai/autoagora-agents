@@ -14,7 +14,7 @@ class Action:
         low (float | NDArray): The lower bound of the action space
         high (float | NDArray): The upper bound of the action space
         shape (tuple[int, ...]): The shape of the action space
-        action (NDArray): The action of the entity
+        value (NDArray): The action of the entity
     """
 
     def __init__(
@@ -24,11 +24,11 @@ class Action:
         self._action = self.space.sample()
 
     @property
-    def action(self) -> NDArray:
+    def value(self) -> NDArray:
         return self._action
 
-    @action.setter
-    def action(self, v: NDArray) -> None:
+    @value.setter
+    def value(self, v: NDArray) -> None:
         v = experiment.applybounds(v, self.space.low, self.space.high)  # type: ignore
         self._action = v
 
@@ -59,11 +59,11 @@ class PriceMultiplierAction(Action):
         self.baseprice = baseprice
 
     @property
-    def action(self) -> NDArray:
+    def value(self) -> NDArray:
         return self._action
 
-    @action.setter
-    def action(self, v: NDArray) -> None:
+    @value.setter
+    def value(self, v: NDArray) -> None:
         v = experiment.applybounds(v, self.space.low, self.space.high)  # type: ignore
         self._action = v
 

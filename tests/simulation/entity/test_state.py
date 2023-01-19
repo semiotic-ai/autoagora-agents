@@ -17,24 +17,24 @@ def test_state_init():
     s = state.State(low=0, high=3, initial=a)
     assert (s.space.low == np.zeros(3)).all()
     assert (s.space.high == 3 * np.ones(3)).all()
-    assert (s.state == a).all()
+    assert (s.value == a).all()
 
 
 def test_state_initial_oob():
     a = np.array([-1, -1, -1])
     s = state.State(low=0, high=3, initial=a)
-    assert (s.state == np.array([0, 0, 0])).all()
+    assert (s.value == np.array([0, 0, 0])).all()
 
 
 def test_state_update(s):
-    s.state = np.array([3, 3, 3])
-    assert (s.state == np.array([3, 3, 3])).all()
+    s.value = np.array([3, 3, 3])
+    assert (s.value == np.array([3, 3, 3])).all()
 
 
 def test_state_reset(s):
     s.state = np.array([3, 3, 3])
     s.reset()
-    assert (s.state == np.array([1, 2, 3])).all()
+    assert (s.value == np.array([1, 2, 3])).all()
 
 
 def test_pricestate_factory():
@@ -54,6 +54,7 @@ def test_budgetstate_factory():
         "low": np.zeros(3),
         "high": 3 * np.ones(3),
         "initial": np.zeros(3),
+        "traffic": np.ones(3),
     }
     s = state.statefactory(**config)
     assert isinstance(s, state.BudgetState)

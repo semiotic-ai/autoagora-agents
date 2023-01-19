@@ -23,9 +23,9 @@ def test_pricestate_priceaction_dynamics():
         "shape": (3,),
     }
     a = actionfactory(**action)
-    a.action = np.array([1, 2, 3])
+    a.value = np.array([1, 2, 3])
     dynamics(s, a)  # type: ignore
-    assert (s.state == np.array([1, 2, 3])).all()
+    assert (s.value == np.array([1, 2, 3])).all()
 
 
 def test_pricestate_pricemultiplieraction_dynamics():
@@ -44,9 +44,9 @@ def test_pricestate_pricemultiplieraction_dynamics():
         "baseprice": 0.1 * np.ones(3),
     }
     a = actionfactory(**action)
-    a.action = np.array([1, 2, 3])
+    a.value = np.array([1, 2, 3])
     dynamics(s, a)  # type: ignore
-    assert np.allclose(s.state, np.array([0.1, 0.2, 0.3]))
+    assert np.allclose(s.value, np.array([0.1, 0.2, 0.3]))
 
 
 def test_budgetstate_budgetaction_dynamics():
@@ -55,6 +55,7 @@ def test_budgetstate_budgetaction_dynamics():
         "low": np.zeros(3),
         "high": 3 * np.ones(3),
         "initial": np.zeros(3),
+        "traffic": np.ones(3),
     }
     s = statefactory(**state)
     action = {
@@ -64,6 +65,6 @@ def test_budgetstate_budgetaction_dynamics():
         "shape": (3,),
     }
     a = actionfactory(**action)
-    a.action = np.array([1, 2, 3])
+    a.value = np.array([1, 2, 3])
     dynamics(s, a)  # type: ignore
-    assert (s.state == np.array([1, 2, 3])).all()
+    assert (s.value == np.array([1, 2, 3])).all()

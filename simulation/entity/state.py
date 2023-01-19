@@ -15,7 +15,9 @@ class State:
         low (float | NDArray): The lower bound of the state space.
         high (float | NDArray): The upper bound of the state space
         initial (NDArray): The initial value of the state
-        state (NDArray): The state of the entity
+        value (NDArray): The state of the entity
+        traffic (NDArray): Either how many queries the agent received in the last timestep
+            or how many it sent out. Each element of the array is a different query type.
     """
 
     def __init__(
@@ -24,18 +26,20 @@ class State:
         self.space = gymnasium.spaces.Box(low, high, shape=np.shape(initial))
         self.initial = initial
         self._state = np.zeros_like(initial)
-        self.state = initial
+        self.value = initial
+        self.traffic = np.zeros_like(initial)
 
     def reset(self) -> None:
         """Reset the state."""
-        self.state = self.initial
+        self.value = self.initial
+        self.traffic = np.zeros_like(self.initial)
 
     @property
-    def state(self) -> NDArray:
+    def value(self) -> NDArray:
         return self._state
 
-    @state.setter
-    def state(self, v: NDArray) -> None:
+    @value.setter
+    def value(self, v: NDArray) -> None:
         v = experiment.applybounds(v, self.space.low, self.space.high)  # type: ignore
         self._state = v
 
@@ -56,13 +60,27 @@ class BudgetState(State):
     The default budget in the studio is 0.003.
 
     Use "budget" as the "kind" of state in the config.
+
+    Attributes:
+        initialtraffic (NDArray): The initial value of the traffic vector.
     """
 
-    def __init__(self, *, low: float, high: float, initial: NDArray) -> None:
+    def __init__(
+        self, *, low: float, high: float, initial: NDArray, traffic: NDArray
+    ) -> None:
         super().__init__(low=low, high=high, initial=initial)
+        self.initialtraffic = traffic
+        self.traffic = traffic
+
+    def reset(self) -> None:
+        """Reset the state."""
+        self.value = self.initial
+        self.traffic = self.initialtraffic
 
 
-def statefactory(*, kind: str, low: float, high: float, initial: NDArray) -> State:
+def statefactory(
+    *, kind: str, low: float, high: float, initial: NDArray, **kwargs
+) -> State:
     """Instantiate a new state.
 
     Keyword Arguments:
@@ -77,4 +95,6 @@ def statefactory(*, kind: str, low: float, high: float, initial: NDArray) -> Sta
         State: An instantiated state.
     """
     states = {"price": PriceState, "budget": BudgetState}
-    return experiment.factory(kind, states, low=low, high=high, initial=initial)
+    return experiment.factory(
+        kind, states, low=low, high=high, initial=initial, **kwargs
+    )

@@ -9,7 +9,7 @@ from simulation.entity.action import *
 
 
 @dispatch(PriceState, PriceAction)
-def dynamics(s: PriceState, a: PriceAction) -> None:
+def dynamics(s: PriceState, a: PriceAction) -> None:  # type: ignore
     """Update the state given the action.
 
     In this case, the new state is just the new action.
@@ -18,11 +18,11 @@ def dynamics(s: PriceState, a: PriceAction) -> None:
         s (PriceState): The previous state
         a (PriceAction): The current action
     """
-    s.state = a.action
+    s.value = a.value
 
 
 @dispatch(PriceState, PriceMultiplierAction)
-def dynamics(s: PriceState, a: PriceMultiplierAction) -> None:
+def dynamics(s: PriceState, a: PriceMultiplierAction) -> None:  # type: ignore
     """Update the state given the action.
 
     In this case, the new state is the price multipliers times the base price.
@@ -31,11 +31,11 @@ def dynamics(s: PriceState, a: PriceMultiplierAction) -> None:
         s (PriceState): The previous state
         a (PriceAction): The current action
     """
-    s.state = a.action * a.baseprice
+    s.value = a.value * a.baseprice
 
 
 @dispatch(BudgetState, BudgetAction)
-def dynamics(s: BudgetState, a: BudgetAction) -> None:
+def dynamics(s: BudgetState, a: BudgetAction) -> None:  # type: ignore
     """Update the state given the action.
 
     In this case, the new state is just the new action.
@@ -44,4 +44,4 @@ def dynamics(s: BudgetState, a: BudgetAction) -> None:
         s (PriceState): The previous state
         a (PriceAction): The current action
     """
-    s.state = a.action
+    s.value = a.value

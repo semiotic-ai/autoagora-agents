@@ -18,8 +18,8 @@ def test_action_init(a):
 
 
 def test_action_update(a):
-    a.action = np.array([3, 3, 3])
-    assert (a.action == np.array([3, 3, 3])).all()
+    a.value = np.array([3, 3, 3])
+    assert (a.value == np.array([3, 3, 3])).all()
 
 
 def test_priceaction_factory():
