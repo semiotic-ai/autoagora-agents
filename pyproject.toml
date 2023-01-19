@@ -37,6 +37,7 @@ numpy = "^1.22.3"
 jax = "^0.4.1"
 sacred = "^0.8.0"
 gymnasium = "^0.27.0"
+multipledispatch = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"

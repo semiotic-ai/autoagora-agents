@@ -47,10 +47,16 @@ class PriceMultiplierAction(Action):
     """The price multiplier and base price of each query type.
 
     Use "pricemultiplier" as the "kind" of action in the config.
+
+    Attributes:
+        baseprice (NDArray): The base price for each product.
     """
 
-    def __init__(self, *, low: float, high: float, shape: tuple[int, ...]) -> None:
+    def __init__(
+        self, *, low: float, high: float, shape: tuple[int, ...], baseprice: NDArray
+    ) -> None:
         super().__init__(low=low, high=high, shape=shape)
+        self.baseprice = baseprice
 
     @property
     def action(self) -> NDArray:
@@ -73,7 +79,7 @@ class BudgetAction(Action):
 
 
 def actionfactory(
-    *, kind: str, low: float, high: float, shape: tuple[int, ...]
+    *, kind: str, low: float, high: float, shape: tuple[int, ...], **kwargs
 ) -> Action:
     """Instantiate a new action.
 
@@ -94,4 +100,4 @@ def actionfactory(
         "budget": BudgetAction,
         "pricemultiplier": PriceMultiplierAction,
     }
-    return experiment.factory(kind, states, low=low, high=high, shape=shape)
+    return experiment.factory(kind, states, low=low, high=high, shape=shape, **kwargs)

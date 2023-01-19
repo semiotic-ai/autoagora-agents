@@ -39,6 +39,7 @@ def test_pricemultiplieraction_factory():
         "low": np.zeros(3),
         "high": 3 * np.ones(3),
         "shape": (3,),
+        "baseprice": 2 * np.ones(3),
     }
     a = action.actionfactory(**config)
     assert isinstance(a, action.PriceMultiplierAction)

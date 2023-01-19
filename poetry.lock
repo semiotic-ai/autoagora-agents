@@ -722,6 +722,22 @@ files = [
 ]
 
 [[package]]
+name = "multipledispatch"
+version = "0.6.0"
+description = "Multiple dispatch"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "multipledispatch-0.6.0-py2-none-any.whl", hash = "sha256:407e6d8c5fa27075968ba07c4db3ef5f02bea4e871e959570eeb69ee39a6565b"},
+    {file = "multipledispatch-0.6.0-py3-none-any.whl", hash = "sha256:a55c512128fb3f7c2efd2533f2550accb93c35f1045242ef74645fc92a2c3cba"},
+    {file = "multipledispatch-0.6.0.tar.gz", hash = "sha256:a7ab1451fd0bf9b92cab3edbd7b205622fb767aeefb4fb536c2e3de9e0a38bea"},
+]
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "munch"
 version = "2.5.0"
 description = "A dot-accessible dictionary (a la JavaScript objects)"
@@ -981,14 +997,14 @@ testutils = ["gitpython (>3)"]
 
 [[package]]
 name = "pyright"
-version = "1.1.289"
+version = "1.1.290"
 description = "Command line wrapper for pyright"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pyright-1.1.289-py3-none-any.whl", hash = "sha256:e3d7767b472ea42f99f338936d95964b97327e8d26fe04c45a377d65e83c9412"},
-    {file = "pyright-1.1.289.tar.gz", hash = "sha256:33426683d1e59a0a29247bec629deac07fb6302f916905f25e0487f964767d94"},
+    {file = "pyright-1.1.290-py3-none-any.whl", hash = "sha256:c1a57ad812f740fc7fb6bb416cd7e3f46f4e88384c723192402a77e2e756b550"},
+    {file = "pyright-1.1.290.tar.gz", hash = "sha256:956d8efc70eb5a54da54c82feef842affd3a81719c8864769cd196e211961e3a"},
 ]
 
 [package.dependencies]
@@ -1576,4 +1592,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8"
-content-hash = "1900f95c597a6693858568847d36948924b657325e89c81dfb1361985acd7370"
+content-hash = "5f314ea251fe2690da4676d71f32cb6f75a43fa47bbe96c1ad459b5fbd37e673"
