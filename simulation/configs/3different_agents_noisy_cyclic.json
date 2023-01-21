@@ -24,7 +24,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 1e-6,
-                "initial_stddev": 1e-7
+                "initial_stddev": 1e-1
             },
             "optimizer": {
                 "type": "adam",
@@ -40,7 +40,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 1e-6,
-                "initial_stddev": 1e-7
+                "initial_stddev": 1e-1
             },
             "optimizer": {
                 "type": "adam",
@@ -56,7 +56,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 1e-6,
-                "initial_stddev": 1e-7
+                "initial_stddev": 1e-1
             },
             "optimizer": {
                 "type": "adam",
@@ -68,7 +68,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 1e-6,
-                "initial_stddev": 1e-7
+                "initial_stddev": 1e-1
             },
             "num_instances": 0
         }

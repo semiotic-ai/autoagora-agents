@@ -5,7 +5,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 1.0e-06,
-                "initial_stddev": 4e-7
+                "initial_stddev": 4e-1
             }
         },
         "rollmem2": {
@@ -13,7 +13,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 1.0e-06,
-                "initial_stddev": 4e-7
+                "initial_stddev": 4e-1
             }
         },
         "rollmem3": {
@@ -21,7 +21,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 1.0e-06,
-                "initial_stddev": 4e-7
+                "initial_stddev": 4e-1
             }
         }
     },

@@ -37,7 +37,7 @@ class TestScaledGaussianAgent:
     @pytest.mark.parametrize(
         "initial_mean, initial_stddev, gauss_min, gauss_max",
         [
-            [1e-6, 1e-7, 0.5e-6, 1.5e-6],
+            [1e-6, 1e-1, 0.5e-6, 1.5e-6],
         ],
     )
     def test_zero_mean_bead(
@@ -86,7 +86,7 @@ class TestScaledGaussianAgent:
         )
 
         save_mean = agent.bid_scale(agent.mean().item())
-        save_stddev = agent.bid_scale(agent.stddev().item())
+        save_stddev = agent.stddev().item()
 
         numpy.testing.assert_approx_equal(
             initial_mean,
