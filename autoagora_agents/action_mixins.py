@@ -115,12 +115,7 @@ class ScaledGaussianAction(Action):
     def bid_scale(self, x: Union[float, torch.Tensor]) -> Union[float, torch.Tensor]:
         """Scales the value."""
         if isinstance(x, float):
-            try:
-                # print(f"x = {x}  => exp(x) * 1e-6 = {exp(x) * 1e-6}")
-                return exp(x) * 1e-6
-            except OverflowError:
-                # print(f"!! OverflowError in exp(x) * 1e-6 for x = {x}!!")
-                exit(-1)
+            return exp(x) * 1e-6
         elif isinstance(x, torch.Tensor):
             return x.exp() * 1e-6
         else:
