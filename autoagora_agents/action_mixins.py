@@ -64,9 +64,9 @@ class ScaledGaussianAction(Action):
         """
         # TODO: rething the order here -> clamp self.stddev?
         if initial:
-            return self._initial_logstddev.exp()
+            return self._initial_logstddev.exp().clamp_max(2)
         else:
-            return self._logstddev.exp()
+            return self._logstddev.exp().clamp_max(2)
 
     @property
     def params(self):
