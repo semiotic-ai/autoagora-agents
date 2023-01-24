@@ -53,6 +53,11 @@ class PriceState(State):
     def __init__(self, *, low: float, high: float, initial: NDArray) -> None:
         super().__init__(low=low, high=high, initial=initial)
 
+    @property
+    def fee(self) -> float:
+        """The query fees earned by the agent."""
+        return sum(np.multiply(self.value, self.traffic))
+
 
 class BudgetState(State):
     """The budget across all queries.

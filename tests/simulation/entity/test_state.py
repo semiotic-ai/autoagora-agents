@@ -48,6 +48,20 @@ def test_pricestate_factory():
     assert isinstance(s, state.PriceState)
 
 
+def test_pricestate_fee():
+    config = {
+        "kind": "price",
+        "low": np.zeros(3),
+        "high": 3 * np.ones(3),
+        "initial": np.zeros(3),
+    }
+    s = state.statefactory(**config)
+    prices = np.random.rand(3)
+    s.value = prices
+    s.traffic = np.ones(3)
+    assert (s.fee == sum(prices)).all()  # type: ignore
+
+
 def test_budgetstate_factory():
     config = {
         "kind": "budget",

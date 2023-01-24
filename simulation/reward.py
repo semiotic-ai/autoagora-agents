@@ -11,7 +11,7 @@ class Reward:
     def __init__(self) -> None:
         pass
 
-    def __call__(self, *, agent: Agent, entities: dict[str, Entity]) -> float:
+    def __call__(self, *, agent: Agent, entities: dict[str, list[Entity]]) -> float:
         return 0.0
 
 
@@ -33,7 +33,7 @@ class RewardDecorator(Reward):
     def reward(self) -> Reward:
         return self._reward
 
-    def __call__(self, *, agent: Agent, entities: dict[str, Entity]) -> float:
+    def __call__(self, *, agent: Agent, entities: dict[str, list[Entity]]) -> float:
         return self._reward(agent=agent, entities=entities) * self.multiplier
 
 
@@ -43,10 +43,30 @@ class TrafficReward(RewardDecorator):
     def __init__(self, *, reward: Reward, multiplier: float) -> None:
         super().__init__(reward=reward, multiplier=multiplier)
 
-    def __call__(self, *, agent: Agent, entities: dict[str, Entity]) -> float:
-        return sum(
-            np.multiply(agent.state.value, agent.state.traffic)
-        ) * self.multiplier + self._reward(agent=agent, entities=entities)
+    def __call__(self, *, agent: Agent, entities: dict[str, list[Entity]]) -> float:
+        return agent.state.fee * self.multiplier + self._reward(  # type: ignore
+            agent=agent, entities=entities
+        )
+
+
+# TODO: Test
+class SumRegretRatio(RewardDecorator):
+    """A reward based on the fees earned over the total possible fees.
+
+    Attributes:
+        fromgroup (str): The group name of the entities paying for queries. Probably
+            "consumer" or something similar.
+    """
+
+    def __init__(self, *, reward: Reward, multiplier: float, fromgroup: str) -> None:
+        super().__init__(reward=reward, multiplier=multiplier)
+        self.fromgroup = fromgroup
+
+    def __call__(self, *, agent: Agent, entities: dict[str, list[Entity]]) -> float:
+        consumers = entities[self.fromgroup]
+        denom = np.sum([np.multiply(c.state.value, c.state.traffic) for c in consumers])
+        val = (agent.state.fee / denom) * self.multiplier  # type: ignore
+        return val + self._reward(agent=agent, entities=entities)
 
 
 def rewardfactory(*, rewards: list[dict]) -> Reward:
@@ -57,11 +77,12 @@ def rewardfactory(*, rewards: list[dict]) -> Reward:
             aggregate reward. Each config must contain the "kind" keyword, wherein
             "kind" can be:
                 "traffic"
+                "sumregretratio"
 
     Returns:
         Reward: The reward object
     """
-    rdict = {"traffic": TrafficReward}
+    rdict = {"traffic": TrafficReward, "sumregretratio": SumRegretRatio}
     r = Reward()
     for config in rewards:
         config["reward"] = r
