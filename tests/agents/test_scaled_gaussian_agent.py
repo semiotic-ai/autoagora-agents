@@ -37,7 +37,7 @@ class TestScaledGaussianAgent:
     @pytest.mark.parametrize(
         "initial_mean, initial_stddev, gauss_min, gauss_max",
         [
-            [1e-6, 1e-7, 0.5e-6, 1.5e-6],
+            [1e-6, 1e-1, 0.5e-6, 1.5e-6],
         ],
     )
     def test_zero_mean_bead(
@@ -68,3 +68,33 @@ class TestScaledGaussianAgent:
             scaled_bids += agent.get_action()
         mean_scaled_bids = scaled_bids / 1000
         assert (mean_scaled_bids >= gauss_min) and (mean_scaled_bids <= gauss_max)
+
+    def test_save_reload_mean_stddev(self):
+        initial_mean = 1e-6
+        initial_stddev = 1e-7
+
+        agent = AgentFactory(
+            agent_name="test_agent",
+            agent_section={
+                "action": {
+                    "type": "scaled_gaussian",
+                    "initial_mean": initial_mean,
+                    "initial_stddev": initial_stddev,
+                },
+                "policy": "rolling_ppo",
+            },
+        )
+
+        save_mean = agent.bid_scale(agent.mean().item())
+        save_stddev = agent.stddev().item()
+
+        numpy.testing.assert_approx_equal(
+            initial_mean,
+            save_mean,
+            err_msg="Initial mean and saved mean are not equal.",
+        )
+        numpy.testing.assert_approx_equal(
+            initial_stddev,
+            save_stddev,
+            err_msg="Initial stddev and saved stddev are not equal.",
+        )

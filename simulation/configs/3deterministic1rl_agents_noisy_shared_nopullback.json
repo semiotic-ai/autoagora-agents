@@ -26,7 +26,7 @@
             "action": {
                 "type": "scaled_gaussian",
                 "initial_mean": 2.0e-06,
-                "initial_stddev": 1e-7
+                "initial_stddev": 1e-1
             },
             "optimizer": {
                 "type": "adam",

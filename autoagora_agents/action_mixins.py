@@ -21,33 +21,31 @@ class Action(ABCMixin):
 
 
 class ScaledGaussianAction(Action):
-    """Mixin class for agents with continuous action space represented as a gausian in the scaled space.
+    """Mixin class for agents with continuous action space represented as a gaussian in the scaled space.
     Moreover, the std dev operates in a separate log space.
     Mixin provides methods for moving between external (scaled bid) and internal (bid) space,sampling actions, visualization etc.
 
     Args:
-        initial_mean: (DEFAULT: 1e-6) initial mean in the original action (i.e. scaled bid) space.
-        initial_stddev: (DEFAULT: 1e-7) initial standard deviation in the original action (i.e. scaled bid) space.
+        initial_mean: (DEFAULT: 1e-6) initial mean in the external action (i.e. scaled bid) space.
+        initial_stddev: (DEFAULT: 1e-1) initial standard deviation in the internal action space.
     """
 
     def __init__(
         self,
         initial_mean: float = 1e-6,
-        initial_stddev: float = 1e-7,
+        initial_stddev: float = 1e-1,
     ):
         # Store init params - after projecting them to the internal "log" space.
         self._initial_mean = torch.Tensor([self.inverse_bid_scale(initial_mean)])
         # TODO: think: currently this maps only to internal log space, not the desired log(log) space of stddev.
-        self._initial_logstddev = torch.Tensor([self.inverse_bid_scale(initial_stddev)])
+        self._initial_logstddev = torch.Tensor([log(initial_stddev)])
 
         # Store policy params - after projecting them to the internal "log" space.
         self._mean = nn.parameter.Parameter(
             torch.Tensor([self.inverse_bid_scale(initial_mean)])
         )
         # TODO: think: currently this maps only to internal log space, not the desired log(log) space of stddev.
-        self._logstddev = nn.parameter.Parameter(
-            torch.Tensor([self.inverse_bid_scale(initial_stddev)])
-        )
+        self._logstddev = nn.parameter.Parameter(torch.Tensor([log(initial_stddev)]))
 
     def mean(self, initial: bool = False):
         """Returns:
@@ -64,9 +62,9 @@ class ScaledGaussianAction(Action):
         """
         # TODO: rething the order here -> clamp self.stddev?
         if initial:
-            return self._initial_logstddev.exp()
+            return self._initial_logstddev.exp().clamp_max(2)
         else:
-            return self._logstddev.exp()
+            return self._logstddev.exp().clamp_max(2)
 
     @property
     def params(self):
@@ -115,12 +113,7 @@ class ScaledGaussianAction(Action):
     def bid_scale(self, x: Union[float, torch.Tensor]) -> Union[float, torch.Tensor]:
         """Scales the value."""
         if isinstance(x, float):
-            try:
-                # print(f"x = {x}  => exp(x) * 1e-6 = {exp(x) * 1e-6}")
-                return exp(x) * 1e-6
-            except OverflowError:
-                # print(f"!! OverflowError in exp(x) * 1e-6 for x = {x}!!")
-                exit(-1)
+            return exp(x) * 1e-6
         elif isinstance(x, torch.Tensor):
             return x.exp() * 1e-6
         else:
