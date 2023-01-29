@@ -146,10 +146,10 @@ DownsampleMethod = Literal["subsample", "mean", "peak"]
 segments per pixel. 
 
 `subsample`: Downsample by taking the first of N samples. This method is fastest and 
-least accurate.
+    least accurate.
 `mean`: Downsample by taking the mean of N samples.
 `peak`: Downsample by drawing a saw wave that follows the min and max of the original 
-data. This method produces the best visual representation of the data but is slower.
+    data. This method produces the best visual representation of the data but is slower.
 """
 
 
@@ -184,11 +184,11 @@ class ChartWidget:
             width (float): Width of the plot line. Defaults to `1.0`.
             style (PenStyle): Style of the plot line. Defaults to `Penstyle.SolidLine`.
             auto_downsample (bool): If True, resample the data before plotting to avoid
-            plotting multiple line segments per pixel. Defaults to `False`.
+                plotting multiple line segments per pixel. Defaults to `False`.
             downsample (int): Reduce the number of samples displayed by the given factor.
-            To disable, set to `1`. Defaults  to `1`.
+                To disable, set to `1`. Defaults  to `1`.
             downsample_method (DownsampleMethod): Method to use for downsampling.
-            Defaults to `peak`.
+                Defaults to `peak`.
         """
         config = {"name": name}
         config["pen"] = _make_pen(color=color, width=width, style=style)
@@ -217,16 +217,16 @@ class ChartWidget:
             name (str): Name (legend title) of the plot
             size (float): Size of the marker symbol. Defaults to `10.0`.
             color (Color): Color to fill the marker symbol. Defaults to
-            `RGBAColor(50,50,150)`.
+                `RGBAColor(50,50,150)`.
             symbol (SymbolType): Shape of the marker symbol. Defaults to `o`.
             border (PenConfig): Pen to draw border around the marker symbol. Defaults to
-            `PenConfig(color=RGBAColor(200,200,200))`.
+                `PenConfig(color=RGBAColor(200,200,200))`.
             auto_downsample (bool): If True, resample the data before plotting to avoid
-            plotting multiple line segments per pixel. Defaults to `False`.
+                plotting multiple line segments per pixel. Defaults to `False`.
             downsample (int): Reduce the number of samples displayed by the given
-            factor.To disable, set to `1`. Defaults  to `1`.
+                factor.To disable, set to `1`. Defaults  to `1`.
             downsample_method (DownsampleMethod): Method to use for downsampling.
-            Defaults to `peak`.
+                Defaults to `peak`.
         """
         config = {
             "name": name,
@@ -273,18 +273,18 @@ class ChartsWidget:
     Args:
         title (str): Title of charts window.
         output_file (str, optional): Path of the captured video output file. If not
-        `None`, hides UI. Defaults to `None`.
+            `None`, hides UI. Defaults to `None`.
         output_codec (str): Codec name to be used for encoding. Defaults to `libx264`.
         output_pixel_format (str): Ouput pixel format. Defaults to `yuv420p`.
         size (Tuple[int,int]):(width,height) of the charts window. Defaults to
-        `1000x1000`.
+            `1000x1000`.
         antialias (bool): Use antialiasing. If true, smooth visuals and slower refresh
-        rate. Defaults to `False`.
+            rate. Defaults to `False`.
         foreground (Color): General foreground color (text,ie). Defaults to `d`.
         background (Color): General background color. Defaults to `k`.
         border (Union[bool,Tuple[int,int,int]], optional): Border between charts.`True`
-        for default border, `False`for None or triplet of int for custom. Defaults to
-        `None`.
+            for default border, `False`for None or triplet of int for custom. Defaults to
+            `None`.
     """
 
     def __init__(
@@ -346,14 +346,14 @@ class ChartsWidget:
             height (int): Prefered height scale factor.Defaults to `200`.
             legend_width (int): Legend width. Defaults to `300`.
             x_label (str, optional): Label text to display under x axis. Defaults to
-            `None`.
+                `None`.
             x_range (Tuple[float,float], optional): Constant range(min,max value) of x
-            axis. For dynamic range, set to `None`. Defaults to `None`.
+                axis. For dynamic range, set to `None`. Defaults to `None`.
             x_log (bool): Use logarithmic scale to display x axis. Defaults to `False`.
             y_label (str, optional): Label text to display next to y axis. Defaults to
-            `None`.
+                `None`.
             y_range (Tuple[float,float], optional): Constant range(min,max value) of y
-            axis. For dynamic range, set to `None`. Defaults to `None`.
+                axis. For dynamic range, set to `None`. Defaults to `None`.
             y_log (bool): Use logarithmic scale for y axis. Defaults to `False`.
 
         Returns:

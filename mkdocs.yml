@@ -1,0 +1,10 @@
+site_name: AutoAgora Agents
+
+nav:
+  - Home : index.md
+  - Python API : api.md
+  - Simulation : sim.md
+
+theme: readthedocs 
+plugins:
+- mkdocstrings
