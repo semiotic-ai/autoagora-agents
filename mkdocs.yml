@@ -5,6 +5,22 @@ nav:
   - Python API : api.md
   - Simulation : sim.md
 
-theme: readthedocs 
+theme: material 
+
 plugins:
-- mkdocstrings
+- search
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        options:
+          show_root_heading: true
+          heading_level: 3
+          filters: ["!_"]
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

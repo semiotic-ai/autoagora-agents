@@ -3,18 +3,10 @@
 ## Controller
 
 ::: simulation.controller
-    handler: python
-    options:
-        show_root_heading: true
-        heading_level: 3
 
 ## Chart
 
 ::: simulation.chart
-    handler: python
-    options:
-        show_root_heading: true
-        heading_level: 3
 
 ## Scripts
 

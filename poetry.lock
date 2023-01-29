@@ -2,7 +2,7 @@
 
 [[package]]
 name = "absl-py"
-version = "1.3.0"
+version = "1.4.0"
 description = "Abseil Python Common Libraries, see https://github.com/abseil/abseil-py."
 category = "dev"
 optional = false
@@ -47,7 +47,7 @@ trio = ["trio (>=0.16,<0.22)"]
 
 [[package]]
 name = "astroid"
-version = "2.12.12"
+version = "2.13.3"
 description = "An abstract syntax tree for Python with inference support."
 category = "dev"
 optional = false
@@ -59,12 +59,12 @@ files = [
 
 [package.dependencies]
 lazy-object-proxy = ">=1.4.0"
-typing-extensions = {version = ">=3.10", markers = "python_version < \"3.10\""}
+typing-extensions = {version = ">=4.0.0", markers = "python_version < \"3.11\""}
 wrapt = {version = ">=1.11,<2", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "attrs"
-version = "22.1.0"
+version = "22.2.0"
 description = "Classes Without Boilerplate"
 category = "dev"
 optional = false
@@ -75,10 +75,11 @@ files = [
 ]
 
 [package.extras]
-dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy (>=0.900,!=0.940)", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "sphinx", "sphinx-notfound-page", "zope.interface"]
-docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
-tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "zope.interface"]
-tests-no-zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins"]
+cov = ["attrs[tests]", "coverage-enable-subprocess", "coverage[toml] (>=5.3)"]
+dev = ["attrs[docs,tests]"]
+docs = ["furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-towncrier", "towncrier", "zope.interface"]
+tests = ["attrs[tests-no-zope]", "zope.interface"]
+tests-no-zope = ["cloudpickle", "cloudpickle", "hypothesis", "hypothesis", "mypy (>=0.971,<0.990)", "mypy (>=0.971,<0.990)", "pympler", "pympler", "pytest (>=4.3.0)", "pytest (>=4.3.0)", "pytest-mypy-plugins", "pytest-mypy-plugins", "pytest-xdist[psutil]", "pytest-xdist[psutil]"]
 
 [[package]]
 name = "babel"
@@ -97,7 +98,7 @@ pytz = ">=2015.7"
 
 [[package]]
 name = "black"
-version = "22.10.0"
+version = "22.12.0"
 description = "The uncompromising code formatter."
 category = "dev"
 optional = false
@@ -2007,7 +2008,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp310-none-macosx_10_9_x86_64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0"
@@ -2023,7 +2023,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp310-none-macosx_11_0_arm64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0"
@@ -2039,7 +2038,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp38-none-macosx_10_9_x86_64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0"
@@ -2055,7 +2053,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp38-none-macosx_11_0_arm64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0"
@@ -2071,7 +2068,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp39-none-macosx_10_9_x86_64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0"
@@ -2087,7 +2083,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0-cp39-none-macosx_11_0_arm64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0+cpu"
@@ -2103,7 +2098,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp310-cp310-linux_x86_64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0+cpu"
@@ -2119,7 +2113,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl"
-
 [[package]]
 name = "torch"
 version = "1.11.0+cpu"
@@ -2135,7 +2128,6 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp39-cp39-linux_x86_64.whl"
-
 [[package]]
 name = "typing-extensions"
 version = "4.4.0"
