@@ -1,11 +1,23 @@
+# Project information
 site_name: AutoAgora Agents
+site_url: https://semiotic-ai.github.io/autoagora-agents/
 
-nav:
-  - Home : index.md
-  - Python API : api.md
-  - Simulation : sim.md
+# Repository
+repo_name: semiotic-ai/autoagora-agents
+repo_url: https://github.com/semiotic-ai/autoagora-agents
+edit_uri: ""
 
-theme: material 
+# Configuration
+theme: 
+  name: material
+  features:
+    - navigation.tabs
+    - toc.integrate
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    primary: teal
+    accent: purple
 
 plugins:
 - search
@@ -14,13 +26,29 @@ plugins:
     handlers:
       python:
         options:
+          docstring_section_style: list
+          members_order: source
           show_root_heading: true
+          show_signature_annotations: true
           heading_level: 3
           filters: ["!_"]
+- mike
+
+# Customization
+extra:
+  version:
+    provider: mike
+    default: latest
 
 markdown_extensions:
+  - pymdownx.snippets
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home : README.md
+  - Python API : api.md
+  - Simulation : sim.md
