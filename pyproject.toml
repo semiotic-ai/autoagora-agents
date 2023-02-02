@@ -52,9 +52,6 @@ scipy = "^1.8.0"
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
 isort = "^5.10.1"
-mkdocs = "^1.4.2"
-mkdocs-material = "^9.0.8"
-mkdocstrings-python = "^0.8.3"
 matplotlib = "^3.5.1"
 tensorboard = "^2.8.0"
 pytest = "^7.1.2"
@@ -64,6 +61,16 @@ pylint = "^2.14.5"
 PySide6 = "^6.3.1"
 pyqtgraph = "^0.12.4"
 ffmpeg-python = "^0.2.0"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.4.2"
+mkdocs-material = "^9.0.8"
+mkdocstrings-python = "^0.8.3"
+mike = "^1.1.2"
+python-semantic-release = "^7.33.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

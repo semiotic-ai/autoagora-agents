@@ -1,21 +1,44 @@
-name: gh-pages 
+name: Build Documents
+
 on:
   push:
     branches:
-      - master 
-permissions:
-  contents: write
+      - master
+
 jobs:
-  deploy:
+  build_docs:
     runs-on: ubuntu-latest
-    steps:
+    env:
+      # https://github.com/actions/runner-images/issues/6185
+      PYTHON_KEYRING_BACKEND: keyring.backends.null.Keyring
+
+    permissions:
+      contents: write
+
+    steps:    
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
         with:
-          python-version: 3.x
-      - uses: actions/cache@v2
+          fetch-depth: 0
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
         with:
-          key: ${{ github.ref }}
-          path: .cache
-      - run: pip install mkdocs mkdocs-material mkdocstrings-python
-      - run: mkdocs gh-deploy --force
+          version: '1.2.2'
+
+      - name: Install dependencies
+        run: poetry install --only docs
+      
+      - name: Get Version
+        id: version
+        run: echo "latest=v$(poetry run semantic-release print-version --current)" >> $GITHUB_OUTPUT
+      
+      - name: Print version
+        run: echo "Latest documents version ${{ steps.version.outputs.latest }}."
+
+      - name: Configure Git user
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - run: poetry run mike deploy --push --rebase --update-aliases ${{ steps.version.outputs.latest }} latest
+      - run: poetry run mike set-default latest
