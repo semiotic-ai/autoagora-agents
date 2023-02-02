@@ -7,6 +7,7 @@ from jax import lax
 from jax import random as jrand
 import jax.numpy as jnp
 from jax._src.typing import ArrayLike
+from jax.scipy.stats import norm
 
 
 import experiment
@@ -26,6 +27,18 @@ class Distribution(ABC):
     @abstractmethod
     def sample(self) -> ArrayLike:
         """ArrayLike: Sample the gaussian distribution."""
+        pass
+
+    @abstractmethod
+    def logprob(self, x: ArrayLike) -> ArrayLike:
+        """The log probability of the PDF at x.
+
+        Arguments:
+            x (ArrayLike): A sample.
+
+        Returns:
+            ArrayLike: The log probability.
+        """
         pass
 
 
@@ -105,6 +118,9 @@ class GaussianDistribution(Distribution):
         # Update key
         _, self.key = jrand.split(self.key)
         return v
+
+    def logprob(self, x: ArrayLike) -> ArrayLike:
+        return norm.logpdf(x, loc=self.mean, scale=self.stddev)
 
 
 class ScaledGaussianDistribution(Distribution):
@@ -210,6 +226,17 @@ class ScaledGaussianDistribution(Distribution):
         _, self.key = jrand.split(self.key)
         return v
 
+    def logprob(self, x: ArrayLike) -> ArrayLike:
+        """The log probability of the PDF at x.
+
+        Arguments:
+            x (ArrayLike): A sample in the unscaled space.
+
+        Returns:
+            ArrayLike: The log probability.
+        """
+        return norm.logpdf(x, loc=self.mean, scale=self.stddev)
+
 
 class DegenerateDistribution(Distribution):
     """A degenerate (deterministic) distribution.
@@ -248,6 +275,9 @@ class DegenerateDistribution(Distribution):
 
     def sample(self) -> ArrayLike:
         return self.value
+
+    def logprob(self, x: ArrayLike) -> ArrayLike:
+        return jnp.zeros_like(self._value)
 
 
 def distributionfactory(*, kind: str, **kwargs) -> Distribution:
