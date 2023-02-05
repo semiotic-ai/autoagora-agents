@@ -3,6 +3,7 @@
 
 import numpy as np
 import sacred
+from simulation.environment import Environment
 
 simulation_ingredient = sacred.Ingredient("simulation")
 
@@ -10,6 +11,7 @@ simulation_ingredient = sacred.Ingredient("simulation")
 @simulation_ingredient.config
 def config():
     nproducts = 1
+    isa = {"kind": "softmax", "source": "consumer", "to": "indexer"}
     entities = [
         {
             "kind": "entity",
