@@ -22,3 +22,7 @@ def test_factory_raises_notimplementederror(d):
     n = "mul"
     with pytest.raises(NotImplementedError):
         _ = experiment.factory(n, d, 2, b=1, c=2)
+
+
+def test_decoratorfactoryhelper_executes_correct_function(d):
+    assert experiment.decoratorfactoryhelper(kind="add", d=d, a=2, b=1, c=2) == 6

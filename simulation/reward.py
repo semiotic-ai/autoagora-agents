@@ -49,7 +49,6 @@ class TrafficReward(RewardDecorator):
         )
 
 
-# TODO: Test
 class SumRegretRatio(RewardDecorator):
     """A reward based on the fees earned over the total possible fees.
 
@@ -86,19 +85,6 @@ def rewardfactory(*, rewards: list[dict]) -> Reward:
     r = Reward()
     for config in rewards:
         config["reward"] = r
-        r = rewardfactoryhelper(d=rdict, **config)  # type: ignore
+        r = experiment.decoratorfactoryhelper(d=rdict, **config)  # type: ignore
 
     return r
-
-
-def rewardfactoryhelper(*, kind: str, d: dict[str, Reward], **kwargs) -> Reward:
-    """Extract "kind" from the config.
-
-    Keyword Arguments:
-        kind (str): The kind of reward.
-        d (dict[str, Reward]): Maps strings to reward classes
-
-    Returns:
-        An instantied reward object.
-    """
-    return experiment.factory(kind, d, **kwargs)

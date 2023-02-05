@@ -32,7 +32,6 @@ class Agent(Entity):
 
     Attributes:
         action (Action): The action taken by the agent
-        reward (float): The last reward received by the agent.
     """
 
     def __init__(
@@ -40,12 +39,10 @@ class Agent(Entity):
     ) -> None:
         super().__init__(group=group, i=i, state=state)
         self.action = actionfactory(**action)
-        self.reward = 0
 
     def reset(self) -> None:
         """Reset the agent."""
         self.state.reset()
-        self.reward = 0
 
 
 def entitygroupfactory(*, kind: str, count: int, **kwargs) -> list[Entity]:
