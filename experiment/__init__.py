@@ -2,5 +2,5 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from experiment.config import experiment
-from experiment.factory import factory
+from experiment.factory import factory, decoratorfactoryhelper
 from experiment.array import inbounds, applybounds

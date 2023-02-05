@@ -25,3 +25,16 @@ def factory(n: str, d: dict[str, Callable], *args, **kwargs) -> Any:
         )
 
     return o
+
+
+def decoratorfactoryhelper(*, kind: str, d: dict[str, Callable], **kwargs) -> Any:
+    """Extract "kind" from the config.
+
+    Keyword Arguments:
+        kind (str): The kind of reward.
+        d (dict[str, Reward]): A mapping between names and callables
+
+    Returns:
+        Any: The value returned by the callable.
+    """
+    return factory(kind, d, **kwargs)
