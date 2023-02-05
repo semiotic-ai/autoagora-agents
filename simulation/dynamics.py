@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from multipledispatch import dispatch
-from numpy._typing import NDArray
 
 from simulation.entity.state import *
 from simulation.entity.action import *
