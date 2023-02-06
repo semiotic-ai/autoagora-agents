@@ -59,7 +59,7 @@ def test_gaussiandistribution_clamping(gaussianconfig):
     dist = distribution.distributionfactory(**gaussianconfig)
     dist._mean = jnp.array([5.0])  # type: ignore
     assert jnp.allclose(dist.mean, jnp.array([2]))  # type: ignore
-    dist._logstddev = jnp.array([5.0])  # type: ignore
+    dist.logstddev = jnp.array([5.0])  # type: ignore
     assert jnp.allclose(dist.stddev, jnp.array([1]))  # type: ignore
 
 
@@ -103,7 +103,7 @@ def test_scaledgaussiandistribution_clamping(scaledgaussianconfig):
     dist = distribution.distributionfactory(**scaledgaussianconfig)
     dist._mean = jnp.array([-1.0])  # type: ignore
     assert jnp.allclose(dist.mean, jnp.array([0.0]))  # type: ignore
-    dist._logstddev = jnp.array([-100.0])  # type: ignore
+    dist.logstddev = jnp.array([-100.0])  # type: ignore
     assert jnp.allclose(dist.stddev, jnp.array([0.1]))  # type: ignore
 
 

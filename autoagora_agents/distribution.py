@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from abc import ABC, abstractmethod
+import math
 
 from jax import lax
 from jax import random as jrand
 import jax.numpy as jnp
-from jax._src.typing import ArrayLike
 from jax.scipy.stats import norm
 
 
@@ -25,20 +25,25 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
-    def sample(self) -> ArrayLike:
-        """ArrayLike: Sample the gaussian distribution."""
+    def sample(self) -> jnp.ndarray:
+        """jnp.ndarray: Sample the gaussian distribution."""
         pass
 
     @abstractmethod
-    def logprob(self, x: ArrayLike) -> ArrayLike:
+    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
         """The log probability of the PDF at x.
 
         Arguments:
-            x (ArrayLike): A sample.
+            x (jnp.ndarray): A sample.
 
         Returns:
-            ArrayLike: The log probability.
+            jnp.ndarray: The log probability.
         """
+        pass
+
+    @abstractmethod
+    def entropy(self) -> jnp.ndarray:
+        """The entropy of the distribution."""
         pass
 
 
@@ -57,19 +62,19 @@ class GaussianDistribution(Distribution):
         maxstddev (list[float]): The maximum value the standard deviation can take on.
 
     Attributes:
-        mean (ArrayLike): The clamped mean of the distribution.
-        initial_mean (ArrayLike): The means of each gaussian distribution.
-        minmean (ArrayLike): The minimum value the mean can take on.
-        maxmean (ArrayLike): The maximum value the mean can take on.
-        stddev (ArrayLike): The clamped standard deviation of the distribution.
-        intial_stddev (ArrayLike): The standard deviations of each gaussian
+        mean (jnp.ndarray): The clamped mean of the distribution.
+        initial_mean (jnp.ndarray): The means of each gaussian distribution.
+        minmean (jnp.ndarray): The minimum value the mean can take on.
+        maxmean (jnp.ndarray): The maximum value the mean can take on.
+        stddev (jnp.ndarray): The clamped standard deviation of the distribution.
+        intial_stddev (jnp.ndarray): The standard deviations of each gaussian
             distribution.
-        minstddev (ArrayLike): The minimum value the standard deviation can take on.
-        maxstddev (ArrayLike): The maximum value the standard deviation can take on.
+        minstddev (jnp.ndarray): The minimum value the standard deviation can take on.
+        maxstddev (jnp.ndarray): The maximum value the standard deviation can take on.
         shape (tuple[int...]): The shape of the vector to return. Normally, it's something
             like (nproducts,)
         seed (int): The random seed of the gaussian.
-        key (ArrayLike): A key for seeding sampling.
+        key (jnp.ndarray): A key for seeding sampling.
     """
 
     def __init__(
@@ -93,25 +98,25 @@ class GaussianDistribution(Distribution):
         self.initial_stddev = jnp.array(initial_stddev)
         self.maxstddev = jnp.array(maxstddev)
         self.minstddev = jnp.array(minstddev)
-        self._logstddev = jnp.log(self.initial_stddev)
+        self.logstddev = jnp.log(self.initial_stddev)
 
         self.seed = seed
         self.key = jrand.PRNGKey(seed)
         self.shape = self.initial_mean.shape
 
     @property
-    def mean(self) -> ArrayLike:
+    def mean(self) -> jnp.ndarray:
         return lax.clamp(self.minmean, self._mean, self.maxmean)
 
     @property
-    def stddev(self) -> ArrayLike:
-        return lax.clamp(self.minstddev, jnp.exp(self._logstddev), self.maxstddev)
+    def stddev(self) -> jnp.ndarray:
+        return lax.clamp(self.minstddev, jnp.exp(self.logstddev), self.maxstddev)
 
     def reset(self) -> None:
         self._mean = self.initial_mean
-        self._logstddev = jnp.log(self.initial_stddev)
+        self.logstddev = jnp.log(self.initial_stddev)
 
-    def sample(self) -> ArrayLike:
+    def sample(self) -> jnp.ndarray:
         v = self.mean + jnp.multiply(
             self.stddev, jrand.normal(self.key, shape=self.shape)
         )
@@ -119,8 +124,11 @@ class GaussianDistribution(Distribution):
         _, self.key = jrand.split(self.key)
         return v
 
-    def logprob(self, x: ArrayLike) -> ArrayLike:
+    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
         return norm.logpdf(x, loc=self.mean, scale=self.stddev)
+
+    def entropy(self) -> jnp.ndarray:
+        return 0.5 + 0.5 * jnp.log(2 * math.pi) + jnp.log(self.mean)
 
 
 class ScaledGaussianDistribution(Distribution):
@@ -142,22 +150,22 @@ class ScaledGaussianDistribution(Distribution):
         scalefactor (list[float]): The scale factor for each gaussian distribution.
 
     Attributes:
-        mean (ArrayLike): The clamped mean of the distribution.
-        initial_mean (ArrayLike): The means of each gaussian distribution.
-        minmean (ArrayLike): The minimum value the mean can take on.
-        maxmean (ArrayLike): The maximum value the mean can take on.
-        stddev (ArrayLike): The clamped standard deviation of the distribution.
-        intial_stddev (ArrayLike): The standard deviations of each gaussian
+        mean (jnp.ndarray): The clamped mean of the distribution.
+        initial_mean (jnp.ndarray): The means of each gaussian distribution.
+        minmean (jnp.ndarray): The minimum value the mean can take on.
+        maxmean (jnp.ndarray): The maximum value the mean can take on.
+        stddev (jnp.ndarray): The clamped standard deviation of the distribution.
+        intial_stddev (jnp.ndarray): The standard deviations of each gaussian
             distribution.
-        minstddev (ArrayLike): The minimum value the standard deviation can take on.
-        maxstddev (ArrayLike): The maximum value the standard deviation can take on.
-        scalefactor (ArrayLike): The scale factor for each gaussian distribution.
-        invscalefactor (ArrayLike): The inverse scale factor for each gaussian
+        minstddev (jnp.ndarray): The minimum value the standard deviation can take on.
+        maxstddev (jnp.ndarray): The maximum value the standard deviation can take on.
+        scalefactor (jnp.ndarray): The scale factor for each gaussian distribution.
+        invscalefactor (jnp.ndarray): The inverse scale factor for each gaussian
             distribution.
         shape (tuple[int...]): The shape of the vector to return. Normally, it's something
             like (nproducts,)
         seed (int): The random seed of the gaussian.
-        key (ArrayLike): A key for seeding sampling.
+        key (jnp.ndarray): A key for seeding sampling.
     """
 
     def __init__(
@@ -183,41 +191,41 @@ class ScaledGaussianDistribution(Distribution):
         self.initial_stddev = jnp.array(initial_stddev)
         self.maxstddev = jnp.array(maxstddev)
         self.minstddev = jnp.array(minstddev)
-        self._logstddev = jnp.log(self.initial_stddev)
+        self.logstddev = jnp.log(self.initial_stddev)
 
         self.seed = seed
         self.key = jrand.PRNGKey(seed)
         self.shape = self.initial_mean.shape  # type: ignore
 
     @property
-    def invscalefactor(self) -> ArrayLike:
+    def invscalefactor(self) -> jnp.ndarray:
         return 1 / self.scalefactor
 
     @property
-    def mean(self) -> ArrayLike:
+    def mean(self) -> jnp.ndarray:
         return lax.clamp(self.minmean, self._mean, self.maxmean)
 
     @property
-    def stddev(self) -> ArrayLike:
-        return lax.clamp(self.minstddev, jnp.exp(self._logstddev), self.maxstddev)
+    def stddev(self) -> jnp.ndarray:
+        return lax.clamp(self.minstddev, jnp.exp(self.logstddev), self.maxstddev)
 
-    def inversescale(self, x: ArrayLike) -> ArrayLike:
+    def inversescale(self, x: jnp.ndarray) -> jnp.ndarray:
         """Apply the inverse scaling operation to x."""
         return jnp.log(jnp.multiply(self.invscalefactor, x))
 
-    def scale(self, x: ArrayLike) -> ArrayLike:
+    def scale(self, x: jnp.ndarray) -> jnp.ndarray:
         """Apply the scaling operation to x."""
         return jnp.multiply(self.scalefactor, jnp.exp(x))
 
     def reset(self) -> None:
         self._mean = self.initial_mean
-        self._logstddev = jnp.log(self.initial_stddev)
+        self.logstddev = jnp.log(self.initial_stddev)
 
-    def sample(self) -> ArrayLike:
+    def sample(self) -> jnp.ndarray:
         """Sample and return values in the scaled space."""
         return self.scale(self.unscaledsample())
 
-    def unscaledsample(self) -> ArrayLike:
+    def unscaledsample(self) -> jnp.ndarray:
         """Sample and return values in the unscaled space."""
         v = self.mean + jnp.multiply(
             self.stddev, jrand.normal(self.key, shape=self.shape)
@@ -226,16 +234,20 @@ class ScaledGaussianDistribution(Distribution):
         _, self.key = jrand.split(self.key)
         return v
 
-    def logprob(self, x: ArrayLike) -> ArrayLike:
+    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
         """The log probability of the PDF at x.
 
         Arguments:
-            x (ArrayLike): A sample in the unscaled space.
+            x (jnp.ndarray): A sample in the scaled space.
 
         Returns:
-            ArrayLike: The log probability.
+            jnp.ndarray: The log probability.
         """
-        return norm.logpdf(x, loc=self.mean, scale=self.stddev)
+        y = self.inversescale(x)
+        return norm.logpdf(y, loc=self.mean, scale=self.stddev)
+
+    def entropy(self) -> jnp.ndarray:
+        return 0.5 + 0.5 * jnp.log(2 * math.pi) + jnp.log(self.mean)
 
 
 class DegenerateDistribution(Distribution):
@@ -247,10 +259,10 @@ class DegenerateDistribution(Distribution):
         maxvalue (list[float]): The maximum value of the distribution.
 
     Attributes:
-        initial_value (ArrayLike): The initial value of the distribution.
-        minvalue (ArrayLike): The minimum value of the distribution.
-        maxvalue (ArrayLike): The maximum value of the distribution.
-        value (ArrayLike): The clamped value of the distribution.
+        initial_value (jnp.ndarray): The initial value of the distribution.
+        minvalue (jnp.ndarray): The minimum value of the distribution.
+        maxvalue (jnp.ndarray): The maximum value of the distribution.
+        value (jnp.ndarray): The clamped value of the distribution.
     """
 
     def __init__(
@@ -267,16 +279,19 @@ class DegenerateDistribution(Distribution):
         self._value = self.initial_value
 
     @property
-    def value(self) -> ArrayLike:
+    def value(self) -> jnp.ndarray:
         return lax.clamp(self.minvalue, self._value, self.maxvalue)
 
     def reset(self) -> None:
         self._value = self.initial_value
 
-    def sample(self) -> ArrayLike:
+    def sample(self) -> jnp.ndarray:
         return self.value
 
-    def logprob(self, x: ArrayLike) -> ArrayLike:
+    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
+        return jnp.zeros_like(self._value)
+
+    def entropy(self) -> jnp.ndarray:
         return jnp.zeros_like(self._value)
 
 
