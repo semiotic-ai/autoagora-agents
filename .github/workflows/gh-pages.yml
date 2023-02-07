@@ -30,15 +30,12 @@ jobs:
       
       - name: Get Version
         id: version
-        run: echo "latest=v$(poetry run semantic-release print-version --current)" >> $GITHUB_OUTPUT
-      
-      - name: Print version
-        run: echo "Latest documents version ${{ steps.version.outputs.latest }}."
+        run: poetry run semantic-release github
 
-      - name: Configure Git user
+      - name: Build documents
+        if: steps.version.outputs.should_bump == 'True' 
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-
-      - run: poetry run mike deploy --push --rebase --update-aliases ${{ steps.version.outputs.latest }} latest
-      - run: poetry run mike set-default latest
+          poetry run mike deploy --rebase --update-aliases v${{ steps.version.outputs.new_version }} latest
+          poetry run mike set-default --push latest

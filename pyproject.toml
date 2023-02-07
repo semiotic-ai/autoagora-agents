@@ -70,7 +70,7 @@ mkdocs = "^1.4.2"
 mkdocs-material = "^9.0.8"
 mkdocstrings-python = "^0.8.3"
 mike = "^1.1.2"
-python-semantic-release = "^7.33.1"
+python-semantic-release = {git="https://github.com/tumaysem/python-semantic-release.git"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
