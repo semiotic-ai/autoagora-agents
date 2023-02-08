@@ -4,7 +4,7 @@
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
 [![Semantic Versioning](https://img.shields.io/badge/semver-2.0.0-green)](https://semver.org/spec/v2.0.0.html)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Documents](https://img.shields.io/github/actions/workflow/status/semiotic-ai/autoagora-agents/gh_pages.yml?label=docs)](https://semoitic-ai.github.io/autoagora-agents/)
+[![Documents](https://img.shields.io/github/actions/workflow/status/semiotic-ai/autoagora-agents/gh-pages.yml?label=docs)](https://semoitic-ai.github.io/autoagora-agents/)
 
 
 # AutoAgora Agents
