@@ -1,0 +1,41 @@
+name: Build Documents
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_docs:
+    runs-on: ubuntu-latest
+    env:
+      # https://github.com/actions/runner-images/issues/6185
+      PYTHON_KEYRING_BACKEND: keyring.backends.null.Keyring
+
+    permissions:
+      contents: write
+
+    steps:    
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: '1.2.2'
+
+      - name: Install dependencies
+        run: poetry install --only docs
+      
+      - name: Get Version
+        id: version
+        run: poetry run semantic-release github
+
+      - name: Build documents
+        if: steps.version.outputs.should_bump == 'True' 
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          poetry run mike deploy --rebase --update-aliases v${{ steps.version.outputs.new_version }} latest
+          poetry run mike set-default --push latest
