@@ -9,6 +9,8 @@ from simulation import simulation_ingredient
 @simulation_ingredient.config
 def config():
     nproducts = 1
+    ntimesteps = 100
+    nepisodes = 1
     isa = {"kind": "softmax", "source": "consumer", "to": "indexer"}
     entities = [
         {

@@ -4,6 +4,8 @@
 import numpy as np
 import pytest
 
+from simulation import environment
+
 
 @pytest.fixture
 def agentconfig():
@@ -47,6 +49,8 @@ def consumerconfig():
 def simulationconfig():
     nproducts = 1
     return {
+        "ntimesteps": 2,
+        "nepisodes": 1,
         "isa": {"kind": "softmax", "source": "consumer", "to": "indexer"},
         "entities": [
             {
@@ -91,3 +95,13 @@ def simulationconfig():
             },
         ],
     }
+
+
+@pytest.fixture
+def env(simulationconfig):
+    return environment(
+        simulationconfig["isa"],
+        simulationconfig["entities"],
+        simulationconfig["ntimesteps"],
+        simulationconfig["nepisodes"],
+    )

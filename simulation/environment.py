@@ -23,16 +23,29 @@ class Environment(gymnasium.Env):
     Attributes:
         groups (dict[str, list[Entity]]): A mapping from group names to the entities in
             that group.
+        nepisodes (int): How many episodes to run.
+        ntimesteps (int): How many timesteps to run each episode for.
+        t (int): The current timestep.
         _rewards (dict[str, Reward]): A mapping from group names to the reward function
             of entities in that group.
         _observations (dict[str, Observation]) A mapping from group names to that group's
             observation function.
     """
 
-    def __init__(self, *, isa: dict[str, Any], entities: list[dict[str, Any]]) -> None:
+    def __init__(
+        self,
+        *,
+        isa: dict[str, Any],
+        entities: list[dict[str, Any]],
+        ntimesteps: int,
+        nepisodes: int
+    ) -> None:
         super().__init__()
         # Create entities
         self.groups = {e["group"]: entitygroupfactory(**e) for e in entities}
+        self.nepisodes = nepisodes
+        self.ntimesteps = ntimesteps
+        self.t = 0
         self._rewards = {
             e["group"]: rewardfactory(rewards=e["reward"])
             for e in entities
@@ -45,23 +58,27 @@ class Environment(gymnasium.Env):
         }
         self.isa = isafactory(**isa)
 
-    def reset(self) -> dict[str, list[np.ndarray]]:
+    def reset(self) -> tuple[dict[str, np.ndarray], dict[str, float], dict[str, bool]]:
         """Reset the environment.
 
         Returns:
-            dict[str, list[np.ndarray]]: The initial observations of the agents.
+            observation (dict[str, np.ndarray]): The observations of the agents.
+                Each entry in the dictionary maps an agent to its observation.
+            reward (dict[str, float]): The rewards of the agents. Each entry in the
+                dictionary maps an agent to its reward.
+            done (dict[str, bool]): False if an agent is not done. True if it is. Each
+                entry in the dictionary maps an agent to its done state.
         """
+        self.t = 0
         for group in self.groups.values():
             for entity in group:
                 entity.reset()
 
-        return self.observation
+        return self.observation, self.reward, self.done
 
     def step(
-        self, *, actions: dict[str, list[np.ndarray]]
-    ) -> tuple[
-        dict[str, list[np.ndarray]], dict[str, list[float]], dict[str, np.ndarray]
-    ]:
+        self, *, actions: dict[str, np.ndarray]
+    ) -> tuple[dict[str, np.ndarray], dict[str, float], dict[str, bool]]:
         """Step the environment forward given a set of actions.
 
         Keyword Arguments:
@@ -69,21 +86,17 @@ class Environment(gymnasium.Env):
                 The mapping is between group names and lists of actions.
 
         Returns:
-            observation (dict[str, list[np.ndarray]]): The observations of the agents.
-                Each entry in the dictionary maps a group to a list of observations
-                for agents in that group.
+            observation (dict[str, np.ndarray]): The observations of the agents.
+                Each entry in the dictionary maps an agent to its observation.
             reward (dict[str, float]): The rewards of the agents. Each entry in the
-                dictionary maps a group to a list of rewards for agents in that group.
-            done (dict[str, np.ndarray]): 0 if an agent is not done. 1 if it is. Each
-                entry in the dictionary maps a group to a vector of dones for agents in
-                that group.
+                dictionary maps an agent to its reward.
+            done (dict[str, bool]): False if an agent is not done. True if it is. Each
+                entry in the dictionary maps an agent to its done state.
         """
+        self.t += 1
         # Update agent actions
-        for (group, ags) in self.agents.items():
-            print(group)
-            acts = actions[group]
-            for i, ag in enumerate(ags):
-                ag.action.value = acts[i]
+        for agent in self.agentslist:
+            agent.action.value = actions[agent.name]
 
         # Update states
         for agent in self.agentslist:
@@ -120,28 +133,36 @@ class Environment(gymnasium.Env):
         return {k: v for (k, v) in self.groups.items() if type(v[0]) == Entity}  # type: ignore
 
     @property
-    def observation(self) -> dict[str, list[np.ndarray]]:
+    def observation(self) -> dict[str, np.ndarray]:
         """The observations of all agents in the environment."""
         d = {}
         for (group, ags) in self.agents.items():
             obsfn = self._observations[group]
-            obs = [obsfn(agent=a, entities=self.groups) for a in ags]
-            d[group] = obs
-
+            for a in ags:
+                d[a.name] = obsfn(agent=a, entities=self.groups)
         return d
 
     @property
-    def reward(self) -> dict[str, list[float]]:
+    def reward(self) -> dict[str, float]:
         """The rewards of all agents in the environment."""
         d = {}
         for (group, ags) in self.agents.items():
             rewfn = self._rewards[group]
-            rew = [rewfn(agent=a, entities=self.groups) for a in ags]
-            d[group] = rew
-
+            for a in ags:
+                d[a.name] = rewfn(agent=a, entities=self.groups)
         return d
 
     @property
-    def done(self) -> dict[str, np.ndarray]:
-        """Whether each agent is done. In our case, agents are never done, so always 0."""
-        return {k: np.zeros(len(v)) for (k, v) in self.agents.items()}
+    def done(self) -> dict[str, bool]:
+        """Whether each agent is done.
+
+        In our case, agents are only done if the episode is finished.
+        """
+        d = {}
+        for a in self.agentslist:
+            d[a.name] = self.isfinished()
+        return d
+
+    def isfinished(self) -> bool:
+        """True if t >= ntimesteps. Else false."""
+        return self.t >= self.ntimesteps
