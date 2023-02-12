@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import experiment
-from simulation.entity import statefactory, actionfactory
+from simulation.entity.action import actionfactory
+from simulation.entity.state import statefactory
 
 
 class Entity:

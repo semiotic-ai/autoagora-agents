@@ -5,6 +5,7 @@ import numpy as np
 
 from simulation import isa
 from simulation.entity import entitygroupfactory
+
 from ..fixture import *
 
 

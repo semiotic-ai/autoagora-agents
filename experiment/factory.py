@@ -1,7 +1,7 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Callable, Any
+from typing import Any, Callable
 
 
 def factory(n: str, d: dict[str, Callable], *args, **kwargs) -> Any:

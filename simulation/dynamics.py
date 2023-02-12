@@ -3,8 +3,8 @@
 
 from multipledispatch import dispatch
 
-from simulation.entity.state import *
 from simulation.entity.action import *
+from simulation.entity.state import *
 
 
 @dispatch(PriceState, PriceAction)

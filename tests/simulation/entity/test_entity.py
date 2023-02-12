@@ -4,9 +4,9 @@
 import numpy as np
 import pytest
 
-from simulation.entity import entity, Entity, Agent
-from simulation.entity.state import *
+from simulation.entity import Agent, Entity, entity
 from simulation.entity.action import *
+from simulation.entity.state import *
 
 
 @pytest.fixture

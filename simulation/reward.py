@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
-import experiment
 
+import experiment
 from simulation.entity import Agent, Entity
 
 

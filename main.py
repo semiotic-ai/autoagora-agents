@@ -3,10 +3,10 @@
 
 import argparse
 
+from sacred import SETTINGS, Experiment
+
 import experiment
 from simulation import environment, simulation_ingredient
-from sacred import Experiment
-from sacred import SETTINGS
 
 SETTINGS.CONFIG.READ_ONLY_CONFIG = False  # type: ignore
 

@@ -1,13 +1,13 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-import pytest
 import numpy as np
-
-from simulation.isa import SoftmaxISA
-from ..fixture import *
+import pytest
 
 from simulation import environment
+from simulation.isa import SoftmaxISA
+
+from ..fixture import *
 
 
 def test_environment_construction(simulationconfig):

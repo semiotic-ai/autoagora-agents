@@ -3,11 +3,11 @@
 
 from abc import ABC, abstractmethod
 
-from jax.nn import softmax
 import numpy as np
+from jax.nn import softmax
 
-from simulation.entity import Entity
 import experiment
+from simulation.entity import Entity
 
 
 class ISA(ABC):

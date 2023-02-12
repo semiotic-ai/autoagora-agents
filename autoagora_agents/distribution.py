@@ -1,14 +1,13 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from abc import ABC, abstractmethod
 import math
+from abc import ABC, abstractmethod
 
+import jax.numpy as jnp
 from jax import lax
 from jax import random as jrand
-import jax.numpy as jnp
 from jax.scipy.stats import norm
-
 
 import experiment
 

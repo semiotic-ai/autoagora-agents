@@ -3,8 +3,9 @@
 
 import numpy as np
 
-from simulation.entity.entity import entitygroupfactory
 from simulation import observation
+from simulation.entity.entity import entitygroupfactory
+
 from ..fixture import *
 
 

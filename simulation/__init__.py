@@ -5,6 +5,7 @@ from typing import Any
 
 import numpy as np
 import sacred
+
 from simulation.environment import Environment
 
 simulation_ingredient = sacred.Ingredient("simulation")

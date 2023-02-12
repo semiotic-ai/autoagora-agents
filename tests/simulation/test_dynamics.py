@@ -3,9 +3,9 @@
 
 import numpy as np
 
-from simulation.entity.state import *
-from simulation.entity.action import *
 from simulation.dynamics import *
+from simulation.entity.action import *
+from simulation.entity.state import *
 
 
 def test_pricestate_priceaction_dynamics():

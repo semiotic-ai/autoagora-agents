@@ -6,11 +6,11 @@ from typing import Any
 import gymnasium
 import numpy as np
 
-from simulation.entity import entitygroupfactory, Agent, Entity
-from simulation.reward import rewardfactory
-from simulation.observation import observationfactory
 from simulation.dynamics import dynamics
+from simulation.entity import Agent, Entity, entitygroupfactory
 from simulation.isa import isafactory
+from simulation.observation import observationfactory
+from simulation.reward import rewardfactory
 
 
 class Environment(gymnasium.Env):
