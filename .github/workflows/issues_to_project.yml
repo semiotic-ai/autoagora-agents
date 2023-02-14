@@ -1,0 +1,25 @@
+name: Add issue/PR to AutoAgora project board
+on:
+  issues:
+    types:
+      - opened
+  pull_request:
+    types:
+      - opened
+  workflow_dispatch:
+
+jobs:
+  add-to-project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92 #v1.8.0
+        with:
+          app_id: ${{ secrets.PROJECTS_AUTOMATION_APP_ID }}
+          private_key: ${{ secrets.PROJECTS_AUTOMATION_APP_PEM }}
+      - uses: actions/add-to-project@960fbad431afda394cfcf8743445e741acd19e85 #v0.4.0
+        with:
+          project-url: https://github.com/orgs/semiotic-ai/projects/7
+          github-token: ${{ steps.generate_token.outputs.token }}
