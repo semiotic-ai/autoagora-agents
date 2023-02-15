@@ -12,12 +12,50 @@ jobs:
     permissions:
       contents: write
 
+    outputs:      
+      published: ${{ steps.semver.outputs.published }}
+      published_version: ${{ steps.semver.outputs.published_version }}
+      published_version_major: ${{ steps.semver.outputs.published_version_major }}
+      published_version_minor: ${{ steps.semver.outputs.published_version_minor }}
+      published_version_patch: ${{ steps.semver.outputs.published_version_patch }}
+
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
     - name: Python Semantic Release
-      uses: relekang/python-semantic-release@master
+      id: semver
+      uses: tumaysem/python-semantic-release@master
       with:
+        additional_options: --github        
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  build_docs:
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.published == 'True'    
+    env:
+      # https://github.com/actions/runner-images/issues/6185
+      PYTHON_KEYRING_BACKEND: keyring.backends.null.Keyring
+
+    permissions:
+      contents: write
+
+    steps:    
+      - uses: actions/checkout@v3
+
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: '1.2.2'
+
+      - name: Install dependencies
+        run: poetry install --only docs
+     
+      - name: Build documents
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          poetry run mike deploy --rebase --update-aliases v${{ needs.release.outputs.published_version }} latest
+          poetry run mike set-default --push latest
