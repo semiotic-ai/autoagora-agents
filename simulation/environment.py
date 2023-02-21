@@ -78,7 +78,10 @@ class Environment(gymnasium.Env):
             for entity in group:
                 entity.reset()
 
-        return self.observation, self.action, self.reward, self.done
+        # No reward for first timestep
+        reward = {a.name: 0.0 for a in self.agentslist}
+
+        return self.observation, self.action, reward, self.done
 
     def step(
         self, *, actions: dict[str, np.ndarray]
