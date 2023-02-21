@@ -79,7 +79,7 @@ def test_environment_close(env):
 
 def test_environment_step(env):
     # Change the price of an indexer
-    obs, rew, done = env.step(
+    obs, act, rew, done = env.step(
         actions={"indexer_0": np.array([0.25]), "indexer_1": np.array([3])}
     )
     assert env.groups["indexer"][0].state.value == np.array([0.25])

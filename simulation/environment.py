@@ -58,7 +58,11 @@ class Environment(gymnasium.Env):
         }
         self.isa = isafactory(**isa)
 
-    def reset(self) -> tuple[dict[str, np.ndarray], dict[str, float], dict[str, bool]]:
+    def reset(
+        self,
+    ) -> tuple[
+        dict[str, np.ndarray], dict[str, np.ndarray], dict[str, float], dict[str, bool]
+    ]:
         """Reset the environment.
 
         Returns:
@@ -74,11 +78,13 @@ class Environment(gymnasium.Env):
             for entity in group:
                 entity.reset()
 
-        return self.observation, self.reward, self.done
+        return self.observation, self.action, self.reward, self.done
 
     def step(
         self, *, actions: dict[str, np.ndarray]
-    ) -> tuple[dict[str, np.ndarray], dict[str, float], dict[str, bool]]:
+    ) -> tuple[
+        dict[str, np.ndarray], dict[str, np.ndarray], dict[str, float], dict[str, bool]
+    ]:
         """Step the environment forward given a set of actions.
 
         Keyword Arguments:
@@ -88,6 +94,8 @@ class Environment(gymnasium.Env):
         Returns:
             observation (dict[str, np.ndarray]): The observations of the agents.
                 Each entry in the dictionary maps an agent to its observation.
+            action (dict[str, np.ndarray]): The actions of the agents.
+                Each entry in the dictionary maps an agent to its action.
             reward (dict[str, float]): The rewards of the agents. Each entry in the
                 dictionary maps an agent to its reward.
             done (dict[str, bool]): False if an agent is not done. True if it is. Each
@@ -104,7 +112,7 @@ class Environment(gymnasium.Env):
 
         self.isa(entities=self.groups)
 
-        return self.observation, self.reward, self.done
+        return self.observation, self.action, self.reward, self.done
 
     def render(self):
         """Rendering is not part of the simulation framework."""
@@ -161,6 +169,14 @@ class Environment(gymnasium.Env):
         d = {}
         for a in self.agentslist:
             d[a.name] = self.isfinished()
+        return d
+
+    @property
+    def action(self) -> dict[str, np.ndarray]:
+        """Each agent's action."""
+        d = {}
+        for a in self.agentslist:
+            d[a.name] = a.action.value
         return d
 
     def isfinished(self) -> bool:
