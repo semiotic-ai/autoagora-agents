@@ -1,15 +1,16 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-import math
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
+from typing import Union
 
-import jax.numpy as jnp
-from jax import lax
-from jax import random as jrand
-from jax.scipy.stats import norm
+import numpy as np
+import torch
+from torch import nn
 
 import experiment
+
+ArrayLike = Union[np.ndarray, torch.Tensor]
 
 
 class Distribution(ABC):
@@ -23,25 +24,60 @@ class Distribution(ABC):
         """Reset the distribution to its initial values."""
         pass
 
-    @abstractmethod
-    def sample(self) -> jnp.ndarray:
-        """jnp.ndarray: Sample the gaussian distribution."""
+    @abstractproperty
+    def initial_mean(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: Initial mean of the distribution."""
+        pass
+
+    @abstractproperty
+    def initial_stddev(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: Initial standard deviation of the distribution."""
+        pass
+
+    @abstractproperty
+    def logstddev(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: The log standard deviation of the distribution."""
+        pass
+
+    @abstractproperty
+    def mean(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: Mean of the distribution."""
+        pass
+
+    @abstractproperty
+    def unclampedmean(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: Unclamped mean of the distribution."""
+        pass
+
+    @abstractproperty
+    def stddev(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: Standard deviation of the distribution."""
+        pass
+
+    @abstractproperty
+    def distribution(self) -> torch.distributions.Distribution:  # type: ignore
+        """torch.distributions.Distribution: The torch distribution."""
         pass
 
     @abstractmethod
-    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
+    def sample(self) -> torch.Tensor:
+        """torch.Tensor: Sample the gaussian distribution."""
+        pass
+
+    @abstractmethod
+    def logprob(self, x: torch.Tensor) -> torch.Tensor:
         """The log probability of the PDF at x.
 
         Arguments:
-            x (jnp.ndarray): A sample.
+            x (torch.Tensor): A sample.
 
         Returns:
-            jnp.ndarray: The log probability.
+            torch.Tensor: The log probability.
         """
         pass
 
     @abstractmethod
-    def entropy(self) -> jnp.ndarray:
+    def entropy(self) -> torch.Tensor:
         """The entropy of the distribution."""
         pass
 
@@ -50,248 +86,237 @@ class GaussianDistribution(Distribution):
     """A Gaussian distribution.
 
     Keyword Arguments:
-        seed (int): The random seed of the gaussian.
-        intial_mean (list[float]): The means of each gaussian distribution. For example,
+        intial_mean (ArrayLike): The means of each gaussian distribution. For example,
             for multi-product, you would set one initial mean per product.
-        minmean (list[float]): The minimum value the mean can take on.
-        maxmean (list[float]): The maximum value the mean can take on.
-        intial_stddev (list[float]): The standard deviations of each gaussian
+        minmean (ArrayLike): The minimum value the mean can take on.
+        maxmean (ArrayLike): The maximum value the mean can take on.
+        intial_stddev (ArrayLike): The standard deviations of each gaussian
             distribution.
-        minstddev (list[float]): The minimum value the standard deviation can take on.
-        maxstddev (list[float]): The maximum value the standard deviation can take on.
+        minstddev (ArrayLike): The minimum value the standard deviation can take on.
+        maxstddev (ArrayLike): The maximum value the standard deviation can take on.
 
     Attributes:
-        mean (jnp.ndarray): The clamped mean of the distribution.
-        initial_mean (jnp.ndarray): The means of each gaussian distribution.
-        minmean (jnp.ndarray): The minimum value the mean can take on.
-        maxmean (jnp.ndarray): The maximum value the mean can take on.
-        stddev (jnp.ndarray): The clamped standard deviation of the distribution.
-        intial_stddev (jnp.ndarray): The standard deviations of each gaussian
-            distribution.
-        minstddev (jnp.ndarray): The minimum value the standard deviation can take on.
-        maxstddev (jnp.ndarray): The maximum value the standard deviation can take on.
-        shape (tuple[int...]): The shape of the vector to return. Normally, it's something
-            like (nproducts,)
-        seed (int): The random seed of the gaussian.
-        key (jnp.ndarray): A key for seeding sampling.
+        mean (torch.Tensor): The clamped mean of the distribution.
+        minmean (torch.Tensor): The minimum value the mean can take on.
+        maxmean (torch.Tensor): The maximum value the mean can take on.
+        stddev (torch.Tensor): The clamped standard deviation of the distribution.
+        minstddev (torch.Tensor): The minimum value the standard deviation can take on.
+        maxstddev (torch.Tensor): The maximum value the standard deviation can take on.
     """
 
     def __init__(
         self,
         *,
-        seed: int,
-        initial_mean: list[float],
-        minmean: list[float],
-        maxmean: list[float],
-        initial_stddev: list[float],
-        minstddev: list[float],
-        maxstddev: list[float],
+        initial_mean: ArrayLike,
+        minmean: ArrayLike,
+        maxmean: ArrayLike,
+        initial_stddev: ArrayLike,
+        minstddev: ArrayLike,
+        maxstddev: ArrayLike,
     ) -> None:
         super().__init__()
 
-        self.initial_mean = jnp.array(initial_mean)
-        self.maxmean = jnp.array(maxmean)
-        self.minmean = jnp.array(minmean)
-        self._mean = self.initial_mean
+        self._initial_mean = torch.as_tensor(initial_mean)
+        self.maxmean = torch.as_tensor(maxmean)
+        self.minmean = torch.as_tensor(minmean)
+        self._mean = nn.parameter.Parameter(self.initial_mean)
 
-        self.initial_stddev = jnp.array(initial_stddev)
-        self.maxstddev = jnp.array(maxstddev)
-        self.minstddev = jnp.array(minstddev)
-        self.logstddev = jnp.log(self.initial_stddev)
-
-        self.seed = seed
-        self.key = jrand.PRNGKey(seed)
-        self.shape = self.initial_mean.shape
+        self._initial_stddev = torch.as_tensor(initial_stddev)
+        self.maxstddev = torch.as_tensor(maxstddev)
+        self.minstddev = torch.as_tensor(minstddev)
+        self._logstddev = nn.parameter.Parameter(torch.log(self.initial_stddev))
 
     @property
-    def mean(self) -> jnp.ndarray:
-        return lax.clamp(self.minmean, self._mean, self.maxmean)
+    def mean(self) -> torch.Tensor:
+        return torch.clip(self._mean, min=self.minmean, max=self.maxmean)
 
     @property
-    def stddev(self) -> jnp.ndarray:
-        return lax.clamp(self.minstddev, jnp.exp(self.logstddev), self.maxstddev)
+    def stddev(self) -> torch.Tensor:
+        return torch.clip(
+            torch.exp(self.logstddev), min=self.minstddev, max=self.maxstddev
+        )
+
+    @property
+    def logstddev(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: The log standard deviation of the distribution."""
+        return self._logstddev
+
+    @property
+    def unclampedmean(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: Unclamped mean of the distribution."""
+        return self._mean
+
+    @property
+    def initial_mean(self) -> torch.Tensor:
+        return self._initial_mean
+
+    @property
+    def initial_stddev(self) -> torch.Tensor:
+        return self._initial_stddev
 
     def reset(self) -> None:
-        self._mean = self.initial_mean
-        self.logstddev = jnp.log(self.initial_stddev)
+        self._mean = nn.parameter.Parameter(self.initial_mean)
+        self._logstddev = nn.parameter.Parameter(torch.log(self.initial_stddev))
 
-    def sample(self) -> jnp.ndarray:
-        v = self.mean + jnp.multiply(
-            self.stddev, jrand.normal(self.key, shape=self.shape)
-        )
-        # Update key
-        _, self.key = jrand.split(self.key)
-        return v
+    @property
+    def distribution(self) -> torch.distributions.Distribution:
+        return torch.distributions.Normal(loc=self.mean, scale=self.stddev)
 
-    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
-        return norm.logpdf(x, loc=self.mean, scale=self.stddev)
+    def sample(self) -> torch.Tensor:
+        return self.distribution.rsample().detach().item()
 
-    def entropy(self) -> jnp.ndarray:
-        return 0.5 + 0.5 * jnp.log(2 * math.pi) + jnp.log(self.mean)
+    def logprob(self, x: torch.Tensor) -> torch.Tensor:
+        return self.distribution.log_prob(x)
+
+    def entropy(self) -> torch.Tensor:
+        return self.distribution.entropy()
 
 
-class ScaledGaussianDistribution(Distribution):
+class ScaledGaussianDistribution(GaussianDistribution):
     """A Gaussian distribution wherein the gaussian is in a scaled space.
 
     In the scaled space, the mean is multiplied by the inverse scale factor and then put
     into log space. This also applies to the bounds on the mean below.
 
     Keyword Arguments:
-        seed (int): The random seed of the gaussian.
-        intial_mean (list[float]): The means of each gaussian distribution. For example,
-            for multi-product, you would set one initial mean per product.
-        minmean (list[float]): The minimum value the mean can take on.
-        maxmean (list[float]): The maximum value the mean can take on.
-        intial_stddev (list[float]): The standard deviations of each gaussian
-            distribution.
-        minstddev (list[float]): The minimum value the standard deviation can take on.
-        maxstddev (list[float]): The maximum value the standard deviation can take on.
-        scalefactor (list[float]): The scale factor for each gaussian distribution.
+        scalefactor (np.ndarray): The scale factor for each gaussian distribution.
 
     Attributes:
-        mean (jnp.ndarray): The clamped mean of the distribution.
-        initial_mean (jnp.ndarray): The means of each gaussian distribution.
-        minmean (jnp.ndarray): The minimum value the mean can take on.
-        maxmean (jnp.ndarray): The maximum value the mean can take on.
-        stddev (jnp.ndarray): The clamped standard deviation of the distribution.
-        intial_stddev (jnp.ndarray): The standard deviations of each gaussian
-            distribution.
-        minstddev (jnp.ndarray): The minimum value the standard deviation can take on.
-        maxstddev (jnp.ndarray): The maximum value the standard deviation can take on.
-        scalefactor (jnp.ndarray): The scale factor for each gaussian distribution.
-        invscalefactor (jnp.ndarray): The inverse scale factor for each gaussian
-            distribution.
-        shape (tuple[int...]): The shape of the vector to return. Normally, it's something
-            like (nproducts,)
-        seed (int): The random seed of the gaussian.
-        key (jnp.ndarray): A key for seeding sampling.
+        scalefactor (torch.Tensor): The scale factor for each gaussian distribution.
     """
 
     def __init__(
         self,
         *,
-        seed: int,
-        initial_mean: list[float],
-        minmean: list[float],
-        maxmean: list[float],
-        initial_stddev: list[float],
-        minstddev: list[float],
-        maxstddev: list[float],
-        scalefactor: list[float],
+        initial_mean: ArrayLike,
+        minmean: ArrayLike,
+        maxmean: ArrayLike,
+        initial_stddev: ArrayLike,
+        minstddev: ArrayLike,
+        maxstddev: ArrayLike,
+        scalefactor: np.ndarray,
     ) -> None:
-        super().__init__()
-        self.scalefactor = jnp.array(scalefactor)
+        self.scalefactor = torch.as_tensor(scalefactor)
 
-        self.initial_mean = self.inversescale(jnp.array(initial_mean))
-        self.maxmean = self.inversescale(jnp.array(maxmean))
-        self.minmean = self.inversescale(jnp.array(minmean))
-        self._mean = self.initial_mean
-
-        self.initial_stddev = jnp.array(initial_stddev)
-        self.maxstddev = jnp.array(maxstddev)
-        self.minstddev = jnp.array(minstddev)
-        self.logstddev = jnp.log(self.initial_stddev)
-
-        self.seed = seed
-        self.key = jrand.PRNGKey(seed)
-        self.shape = self.initial_mean.shape  # type: ignore
+        super().__init__(
+            initial_mean=self.inversescale(torch.as_tensor(initial_mean)),
+            minmean=self.inversescale(torch.as_tensor(minmean)),
+            maxmean=self.inversescale(torch.as_tensor(maxmean)),
+            initial_stddev=initial_stddev,
+            maxstddev=maxstddev,
+            minstddev=minstddev,
+        )
 
     @property
-    def invscalefactor(self) -> jnp.ndarray:
+    def invscalefactor(self) -> torch.Tensor:
+        """torch.Tensor: The inverse scale factor for each gaussian distribution."""
         return 1 / self.scalefactor
 
-    @property
-    def mean(self) -> jnp.ndarray:
-        return lax.clamp(self.minmean, self._mean, self.maxmean)
-
-    @property
-    def stddev(self) -> jnp.ndarray:
-        return lax.clamp(self.minstddev, jnp.exp(self.logstddev), self.maxstddev)
-
-    def inversescale(self, x: jnp.ndarray) -> jnp.ndarray:
+    def inversescale(self, x: torch.Tensor) -> torch.Tensor:
         """Apply the inverse scaling operation to x."""
-        return jnp.log(jnp.multiply(self.invscalefactor, x))
+        return torch.log(torch.multiply(self.invscalefactor, x))
 
-    def scale(self, x: jnp.ndarray) -> jnp.ndarray:
+    def scale(self, x: torch.Tensor) -> torch.Tensor:
         """Apply the scaling operation to x."""
-        return jnp.multiply(self.scalefactor, jnp.exp(x))
+        return torch.multiply(self.scalefactor, torch.exp(x))
 
-    def reset(self) -> None:
-        self._mean = self.initial_mean
-        self.logstddev = jnp.log(self.initial_stddev)
-
-    def sample(self) -> jnp.ndarray:
+    def sample(self) -> torch.Tensor:
         """Sample and return values in the scaled space."""
         return self.scale(self.unscaledsample())
 
-    def unscaledsample(self) -> jnp.ndarray:
+    def unscaledsample(self) -> torch.Tensor:
         """Sample and return values in the unscaled space."""
-        v = self.mean + jnp.multiply(
-            self.stddev, jrand.normal(self.key, shape=self.shape)
-        )
-        # Update key
-        _, self.key = jrand.split(self.key)
-        return v
+        return self.distribution.rsample().detach().item()
 
-    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
+    def logprob(self, x: torch.Tensor) -> torch.Tensor:
         """The log probability of the PDF at x.
 
         Arguments:
-            x (jnp.ndarray): A sample in the scaled space.
+            x (torch.Tensor): A sample in the scaled space.
 
         Returns:
-            jnp.ndarray: The log probability.
+            torch.Tensor: The log probability.
         """
         y = self.inversescale(x)
-        return norm.logpdf(y, loc=self.mean, scale=self.stddev)
-
-    def entropy(self) -> jnp.ndarray:
-        return 0.5 + 0.5 * jnp.log(2 * math.pi) + jnp.log(self.mean)
+        return self.distribution.log_prob(y)
 
 
+# We don't make this a subclass of GaussianDistribution with stddev 0
+# because torch.distributions.Normal doesn't allow stddev = 0
 class DegenerateDistribution(Distribution):
     """A degenerate (deterministic) distribution.
 
     Keyword Arguments:
-        initial_value (list[float]): The initial value of the distribution.
-        minvalue (list[float]): The minimum value of the distribution.
-        maxvalue (list[float]): The maximum value of the distribution.
+        initial_value (np.ndarray): The initial value of the distribution.
+        minvalue (np.ndarray): The minimum value of the distribution.
+        maxvalue (np.ndarray): The maximum value of the distribution.
 
     Attributes:
-        initial_value (jnp.ndarray): The initial value of the distribution.
-        minvalue (jnp.ndarray): The minimum value of the distribution.
-        maxvalue (jnp.ndarray): The maximum value of the distribution.
-        value (jnp.ndarray): The clamped value of the distribution.
+        initial_value (torch.Tensor): The initial value of the distribution.
+        minvalue (torch.Tensor): The minimum value of the distribution.
+        maxvalue (torch.Tensor): The maximum value of the distribution.
+        value (torch.Tensor): The clamped value of the distribution.
     """
 
     def __init__(
         self,
         *,
-        initial_value: list[float],
-        minvalue: list[float],
-        maxvalue: list[float],
+        initial_value: np.ndarray,
+        minvalue: np.ndarray,
+        maxvalue: np.ndarray,
     ) -> None:
         super().__init__()
-        self.initial_value = jnp.array(initial_value)
-        self.minvalue = jnp.array(minvalue)
-        self.maxvalue = jnp.array(maxvalue)
-        self._value = self.initial_value
+        self.initial_value = torch.as_tensor(initial_value)
+        self.minvalue = torch.as_tensor(minvalue)
+        self.maxvalue = torch.as_tensor(maxvalue)
+        self._value = nn.parameter.Parameter(self.initial_value)
 
     @property
-    def value(self) -> jnp.ndarray:
-        return lax.clamp(self.minvalue, self._value, self.maxvalue)
+    def value(self) -> torch.Tensor:
+        return torch.clip(self._value, min=self.minvalue, max=self.maxvalue)
 
-    def reset(self) -> None:
-        self._value = self.initial_value
-
-    def sample(self) -> jnp.ndarray:
+    @property
+    def mean(self) -> torch.Tensor:
         return self.value
 
-    def logprob(self, x: jnp.ndarray) -> jnp.ndarray:
-        return jnp.zeros_like(self._value)
+    @property
+    def stddev(self) -> torch.Tensor:
+        return torch.zeros_like(self.value)
 
-    def entropy(self) -> jnp.ndarray:
-        return jnp.zeros_like(self._value)
+    @property
+    def logstddev(self) -> torch.Tensor:
+        return torch.log(self.stddev)
+
+    @property
+    def unclampedmean(self) -> torch.Tensor:  # type: ignore
+        """torch.Tensor: Unclamped mean of the distribution."""
+        return self._value
+
+    @property
+    def initial_mean(self) -> torch.Tensor:
+        return self.initial_value
+
+    @property
+    def initial_stddev(self) -> torch.Tensor:
+        return self.stddev
+
+    def reset(self) -> None:
+        self._value = nn.parameter.Parameter(self.initial_value)
+
+    def sample(self) -> torch.Tensor:
+        return self.value
+
+    def logprob(self, _: torch.Tensor) -> torch.Tensor:
+        return torch.zeros_like(self._value)
+
+    def entropy(self) -> torch.Tensor:
+        return torch.zeros_like(self._value)
+
+    @property
+    def distribution(self) -> torch.distributions.Distribution:
+        return torch.distributions.Normal(
+            loc=self.value, scale=torch.zeros_like(self.value)
+        )
 
 
 def distributionfactory(*, kind: str, **kwargs) -> Distribution:

@@ -30,18 +30,28 @@ build_command = false
 upload_to_release = false
 
 [tool.poetry.dependencies]
-python = ">=3.8"
+python = ">=3.8,<3.11"
 ConfigArgParse = "^1.5.3"
 more-itertools = "^8.12.0"
 numpy = "^1.22.3"
-jax = "^0.4.2"
-jaxlib = "^0.4.2"
-rlax = "^0.1.5"
-chex = "^0.1.6"
-optax = "^0.1.4"
 sacred = "^0.8.0"
 gymnasium = "^0.27.0"
 multipledispatch = "^0.6.0"
+torch = [
+    # Python 3.8
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl", markers = "python_version == '3.8' and sys_platform == 'linux' and platform_machine == 'x86_64'"},
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp38-none-macosx_10_9_x86_64.whl", markers = "python_version == '3.8' and sys_platform == 'darwin' and platform_machine == 'x86_64'"},
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp38-none-macosx_11_0_arm64.whl", markers = "python_version == '3.8' and sys_platform == 'darwin' and platform_machine == 'arm64'"},
+    # Python 3.9
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp39-cp39-linux_x86_64.whl", markers = "python_version == '3.9' and sys_platform == 'linux' and platform_machine == 'x86_64'"},
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp39-none-macosx_10_9_x86_64.whl", markers = "python_version == '3.9' and sys_platform == 'darwin' and platform_machine == 'x86_64'"},
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp39-none-macosx_11_0_arm64.whl", markers = "python_version == '3.9' and sys_platform == 'darwin' and platform_machine == 'arm64'"},
+    # Python 3.10
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp310-cp310-linux_x86_64.whl", markers = "python_version == '3.10' and sys_platform == 'linux' and platform_machine == 'x86_64'"},
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp310-none-macosx_10_9_x86_64.whl", markers = "python_version == '3.10' and sys_platform == 'darwin' and platform_machine == 'x86_64'"},
+    {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp310-none-macosx_11_0_arm64.whl", markers = "python_version == '3.10' and sys_platform == 'darwin' and platform_machine == 'arm64'"}
+
+]
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
@@ -70,7 +80,7 @@ markers = [
 [tool.pylint.typecheck]
 # List of members which are set dynamically and missed by pylint inference system, and
 # so shouldn't trigger E1101 when accessed. Python regular expressions are accepted.
-generated-members = ["numpy.*"]
+generated-members = ["numpy.*" ,"torch.*"]
 
 [tool.pyright]
 useLibraryCodeForTypes = true

@@ -4,7 +4,6 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from jax.nn import softmax
 
 import experiment
 from simulation.entity import Entity
@@ -43,6 +42,12 @@ class SoftmaxISA(ISA):
     def __init__(self, *, source: str, to: str) -> None:
         super().__init__(source=source, to=to)
 
+    @staticmethod
+    def softmax(x: np.ndarray) -> np.ndarray:
+        """np.ndarray: Compute softmax of input array."""
+        ex = np.exp(x - np.max(x))
+        return ex / np.sum(ex, axis=0)
+
     # FIXME: Clean up
     def __call__(self, *, entities: dict[str, list[Entity]]) -> None:
         source = entities[self.source]
@@ -62,7 +67,7 @@ class SoftmaxISA(ISA):
                 # if price > budget, set to -np.inf
                 ps = np.array([b - p if p <= b else -np.inf for p in prices])
                 # Run softmax to see how much of the traffic goes to each indexer
-                allocs[j, :] = t * softmax(ps)
+                allocs[j, :] = t * self.softmax(ps)
 
             # Get total traffic per indexer for product i
             ttraffics[:, i] = np.sum(allocs, axis=0)
