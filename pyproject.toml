@@ -4,7 +4,8 @@ version = "0.0.0"
 authors = [
     "Alexis Asseman <alexis@semiotic.ai>",
     "Matt Deible <matt@semiotic.ai>",
-    "Tomasz Kornuta <tomasz@semiotic.ai>"
+    "Tomasz Kornuta <tomasz@semiotic.ai>",
+    "Anirudh A. Patel <anirudh@semiotic.ai>"
 ]
 description = ""
 license = ""
@@ -16,6 +17,8 @@ classifiers = [
 packages = [
     { include = "autoagora_agents" },
 ]
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^4.0.0"
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -30,6 +33,10 @@ upload_to_release = false
 python = ">=3.8,<3.11"
 ConfigArgParse = "^1.5.3"
 more-itertools = "^8.12.0"
+numpy = "^1.22.3"
+sacred = "^0.8.0"
+gymnasium = "^0.27.0"
+multipledispatch = "^0.6.0"
 torch = [
     # Python 3.8
     {url="https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl", markers = "python_version == '3.8' and sys_platform == 'linux' and platform_machine == 'x86_64'"},
@@ -43,33 +50,19 @@ torch = [
     {url="https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp310-cp310-linux_x86_64.whl", markers = "python_version == '3.10' and sys_platform == 'linux' and platform_machine == 'x86_64'"},
     {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp310-none-macosx_10_9_x86_64.whl", markers = "python_version == '3.10' and sys_platform == 'darwin' and platform_machine == 'x86_64'"},
     {url="https://download.pytorch.org/whl/cpu/torch-1.11.0-cp310-none-macosx_11_0_arm64.whl", markers = "python_version == '3.10' and sys_platform == 'darwin' and platform_machine == 'arm64'"}
-    
+
 ]
-anyio = "^3.5.0"
-numpy = "^1.22.3"
-scipy = "^1.8.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
 isort = "^5.10.1"
-matplotlib = "^3.5.1"
-tensorboard = "^2.8.0"
 pytest = "^7.1.2"
-pytest-cov = "^4.0.0"
+sphinx = "^4.5.0"
+sphinx-rtd-theme = "^1.0.0"
 pyright = "^1.1.244"
+sphinxcontrib-napoleon = "^0.7"
+myst-parser = "^0.17.2"
 pylint = "^2.14.5"
-PySide6 = "^6.3.1"
-pyqtgraph = "^0.12.4"
-ffmpeg-python = "^0.2.0"
-
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.4.2"
-mkdocs-material = "^9.0.8"
-mkdocstrings-python = "^0.8.3"
-mike = "^1.1.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
