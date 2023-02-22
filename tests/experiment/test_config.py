@@ -7,4 +7,4 @@ import experiment
 
 
 def test_importn():
-    assert experiment.config.importn("foo", "tests/experiment/helper.py") == "foo"
+    assert experiment.config.importn("foo", "tests/experiment/helper.py") == "foo"  # type: ignore
