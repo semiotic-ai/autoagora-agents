@@ -105,3 +105,121 @@ def env(simulationconfig):
         simulationconfig["ntimesteps"],
         simulationconfig["nepisodes"],
     )
+
+
+@pytest.fixture
+def gaussianconfig():
+    return {
+        "kind": "gaussian",
+        "initial_mean": [1.0],
+        "initial_stddev": [0.5],
+        "minmean": [0.0],
+        "maxmean": [2.0],
+        "minstddev": [0.1],
+        "maxstddev": [1.0],
+    }
+
+
+@pytest.fixture
+def degenerateconfig():
+    return {
+        "kind": "degenerate",
+        "initial_value": [1.0],
+        "minvalue": [0.0],
+        "maxvalue": [2.0],
+    }
+
+
+@pytest.fixture
+def scaledgaussianconfig():
+    return {
+        "kind": "scaledgaussian",
+        "initial_mean": [1.0],
+        "initial_stddev": [1.0],
+        "minmean": [1.0],
+        "maxmean": [5.0],
+        "minstddev": [0.1],
+        "maxstddev": [1.0],
+        "scalefactor": [1.0],
+    }
+
+
+@pytest.fixture
+def predeterminedconfig():
+    return {
+        "kind": "predetermined",
+        "group": "indexer",
+        "count": 1,
+        "timestamps": [0, 3, 6],
+        "vals": [np.zeros(1), np.ones(1), 2 * np.ones(1)],
+    }
+
+
+@pytest.fixture
+def vpgbanditconfig():
+    return {
+        "kind": "vpgbandit",
+        "group": "indexer",
+        "count": 1,
+        "bufferlength": 2,
+        "actiondistribution": {
+            "kind": "gaussian",
+            "initial_mean": [1.0, 1.0, 1.0],
+            "initial_stddev": [0.1, 0.1, 0.1],
+            "minmean": [0.0, 0.0, 0.0],
+            "maxmean": [2.0, 2.0, 2.0],
+            "minstddev": [0.1, 0.1, 0.1],
+            "maxstddev": [1.0, 1.0, 1.0],
+        },
+        "optimizer": {"kind": "sgd", "lr": 0.001},
+    }
+
+
+@pytest.fixture
+def ppobanditconfig():
+    return {
+        "kind": "ppobandit",
+        "group": "indexer",
+        "count": 1,
+        "bufferlength": 2,
+        "actiondistribution": {
+            "kind": "gaussian",
+            "initial_mean": [1.0, 1.0, 1.0],
+            "initial_stddev": [0.1, 0.1, 0.1],
+            "minmean": [0.0, 0.0, 0.0],
+            "maxmean": [2.0, 2.0, 2.0],
+            "minstddev": [0.1, 0.1, 0.1],
+            "maxstddev": [1.0, 1.0, 1.0],
+        },
+        "optimizer": {"kind": "sgd", "lr": 0.001},
+        "ppoiterations": 2,
+        "epsclip": 0.1,
+        "entropycoeff": 1e-1,
+        "pullbackstrength": 1,
+        "stddevfallback": True,
+    }
+
+
+@pytest.fixture
+def rmppobanditconfig():
+    return {
+        "kind": "rmppobandit",
+        "group": "indexer",
+        "count": 1,
+        "bufferlength": 2,
+        "actiondistribution": {
+            "kind": "gaussian",
+            "initial_mean": [1.0, 1.0, 1.0],
+            "initial_stddev": [0.1, 0.1, 0.1],
+            "minmean": [0.0, 0.0, 0.0],
+            "maxmean": [2.0, 2.0, 2.0],
+            "minstddev": [0.1, 0.1, 0.1],
+            "maxstddev": [1.0, 1.0, 1.0],
+        },
+        "optimizer": {"kind": "sgd", "lr": 0.001},
+        "ppoiterations": 2,
+        "epsclip": 0.1,
+        "entropycoeff": 1e-1,
+        "pullbackstrength": 1,
+        "stddevfallback": True,
+    }

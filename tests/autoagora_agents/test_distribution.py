@@ -1,47 +1,11 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-import pytest
 import torch
 
 from autoagora_agents import distribution
 
-
-@pytest.fixture
-def gaussianconfig():
-    return {
-        "kind": "gaussian",
-        "initial_mean": [1.0],
-        "initial_stddev": [0.5],
-        "minmean": [0.0],
-        "maxmean": [2.0],
-        "minstddev": [0.1],
-        "maxstddev": [1.0],
-    }
-
-
-@pytest.fixture
-def degenerateconfig():
-    return {
-        "kind": "degenerate",
-        "initial_value": [1.0],
-        "minvalue": [0.0],
-        "maxvalue": [2.0],
-    }
-
-
-@pytest.fixture
-def scaledgaussianconfig():
-    return {
-        "kind": "scaledgaussian",
-        "initial_mean": [1.0],
-        "initial_stddev": [1.0],
-        "minmean": [1.0],
-        "maxmean": [5.0],
-        "minstddev": [0.1],
-        "maxstddev": [1.0],
-        "scalefactor": [1.0],
-    }
+from ..fixture import *
 
 
 def test_gaussiandistribution_reset(gaussianconfig):

@@ -64,8 +64,9 @@ class SoftmaxISA(ISA):
             straffics = [s.state.traffic[i] for s in source]  # nsource
             allocs = np.zeros((nproducts, nto))
             for j, (t, b) in enumerate(zip(straffics, budgets)):
-                # if price > budget, set to -np.inf
-                ps = np.array([b - p if p <= b else -np.inf for p in prices])
+                # if price > budget, set to -1e20
+                minprice = -1e20
+                ps = np.array([b - p if p <= b else -1e20 for p in prices])
                 # Run softmax to see how much of the traffic goes to each indexer
                 allocs[j, :] = t * self.softmax(ps)
 
@@ -75,6 +76,7 @@ class SoftmaxISA(ISA):
         # Assign computed value back to state
         for i, t in enumerate(to):
             t.state.traffic = ttraffics[i, :]
+            aa = 1
 
 
 def isafactory(*, kind: str, source: str, to: str, **kwargs) -> ISA:

@@ -27,7 +27,7 @@ def config():
         },
         {
             "kind": "agent",
-            "count": 1,
+            "count": 2,
             "group": "indexer",
             "state": {
                 "kind": "price",

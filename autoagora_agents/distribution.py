@@ -59,6 +59,11 @@ class Distribution(ABC):
         """torch.distributions.Distribution: The torch distribution."""
         pass
 
+    @abstractproperty
+    def params(self) -> list[torch.Tensor]:  # type: ignore
+        """list[torch.Tensor]: The trainable parameters."""
+        pass
+
     @abstractmethod
     def sample(self) -> torch.Tensor:
         """torch.Tensor: Sample the gaussian distribution."""
@@ -162,8 +167,12 @@ class GaussianDistribution(Distribution):
     def distribution(self) -> torch.distributions.Distribution:
         return torch.distributions.Normal(loc=self.mean, scale=self.stddev)
 
+    @property
+    def params(self) -> list[torch.Tensor]:
+        return [self._mean, self._logstddev]
+
     def sample(self) -> torch.Tensor:
-        return self.distribution.rsample().detach().item()
+        return self.distribution.rsample().detach()
 
     def logprob(self, x: torch.Tensor) -> torch.Tensor:
         return self.distribution.log_prob(x)
@@ -226,7 +235,7 @@ class ScaledGaussianDistribution(GaussianDistribution):
 
     def unscaledsample(self) -> torch.Tensor:
         """Sample and return values in the unscaled space."""
-        return self.distribution.rsample().detach().item()
+        return self.distribution.rsample().detach()
 
     def logprob(self, x: torch.Tensor) -> torch.Tensor:
         """The log probability of the PDF at x.
@@ -299,6 +308,10 @@ class DegenerateDistribution(Distribution):
     @property
     def initial_stddev(self) -> torch.Tensor:
         return self.stddev
+
+    @property
+    def params(self) -> list[torch.Tensor]:
+        return [self._value]
 
     def reset(self) -> None:
         self._value = nn.parameter.Parameter(self.initial_value)
