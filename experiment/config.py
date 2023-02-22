@@ -37,6 +37,6 @@ def importn(n: str, p: str):
     """
     # https://www.geeksforgeeks.org/how-to-import-a-python-module-given-the-full-path/
     spec = importlib.util.spec_from_file_location(n, p)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    mod = importlib.util.module_from_spec(spec)  # type: ignore
+    spec.loader.exec_module(mod)  # type: ignore
     return getattr(mod, n)
