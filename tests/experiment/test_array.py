@@ -7,68 +7,45 @@ import pytest
 import experiment
 
 
-def test_inbounds_float():
-    a = np.array([1, 2, 3])
-    l = 0
-    h = 3
-    assert experiment.inbounds(a, l, h)
+def inbounds(a: np.ndarray, l: float | np.ndarray, h: float | np.ndarray) -> np.bool_:
+    """Check if array is in between lower and upper bounds.
 
+    Bounds are inclusive.
 
-def test_inbounds_array():
-    a = np.array([1, 2, 3])
-    l = np.array([0, 1, 2])
-    h = np.array([2, 3, 4])
-    assert experiment.inbounds(a, l, h)
+    Arguments:
+        a (np.ndarray): The array to check
+        l (float | np.ndarray): The lower bound
+        h (float | np.ndarray): The upper bound
 
+    Returns:
+        bool: True if array is in bounds, else False.
 
-def test_not_inbounds_float():
-    a = np.array([1, 2, 3])
-    l = 0
-    h = 2
-    assert not experiment.inbounds(a, l, h)
-
-
-def test_not_inbounds_array():
-    a = np.array([1, 2, 3])
-    l = np.array([2, 3, 4])
-    h = np.array([2, 3, 4])
-    assert not experiment.inbounds(a, l, h)
-
-
-def test_inbounds_empty():
-    a = np.array([])
-    l = 0
-    h = 2
-    assert experiment.inbounds(a, l, h)
-
-
-def test_inbounds_raises_valueerror():
-    a = np.array([])
-    l = np.array([1, 2])
-    h = 2
-    with pytest.raises(ValueError):
-        _ = experiment.inbounds(a, l, h)
+    Raises:
+        ValueError: If length of the bounds don't equal the length of the array, if the
+            bounds are given by arrays.
+    """
+    return ((a >= l) & (a <= h)).all()
 
 
 def test_applybounds_float():
     a = np.array([0, 2, 4])
     l = 1
     h = 3
-    assert experiment.inbounds(experiment.applybounds(a, l, h), l, h)
+    assert inbounds(experiment.applybounds(a, l, h), l, h)
 
 
 def test_applybounds_array():
     a = np.array([1, 2, 3])
     l = np.array([2, 3, 4])
     h = np.array([2, 3, 4])
-    assert experiment.inbounds(experiment.applybounds(a, l, h), l, h)
+    assert inbounds(experiment.applybounds(a, l, h), l, h)
 
 
 def test_applybounds_empty():
     a = np.array([])
     l = 1
     h = 3
-    assert experiment.inbounds(experiment.applybounds(a, l, h), l, h)
+    assert inbounds(experiment.applybounds(a, l, h), l, h)
 
 
 def test_applybounds_raises_valueerror():

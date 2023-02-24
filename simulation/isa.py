@@ -76,7 +76,6 @@ class SoftmaxISA(ISA):
         # Assign computed value back to state
         for i, t in enumerate(to):
             t.state.traffic = ttraffics[i, :]
-            aa = 1
 
 
 def isafactory(*, kind: str, source: str, to: str, **kwargs) -> ISA:

@@ -7,8 +7,7 @@ import sacred
 
 
 def experiment(*, name: str, spath: str, apath: str):
-    """
-    Create an experiment.
+    """Create an experiment.
 
     Keyword Arguments:
         name (str): The name of the experiment
