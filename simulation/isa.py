@@ -37,10 +37,15 @@ class SoftmaxISA(ISA):
     """Allocates traffic via a softmax function.
 
     However, if an indexer's price exceeds a consumer's budget, the indexer gets 0 traffic.
+
+    Attributes:
+        minprice (float): A large, negative price so as to ensure an indexer doesn't receive
+            traffic.
     """
 
     def __init__(self, *, source: str, to: str) -> None:
         super().__init__(source=source, to=to)
+        self.minprice = -1e20
 
     @staticmethod
     def softmax(x: np.ndarray) -> np.ndarray:
@@ -65,8 +70,7 @@ class SoftmaxISA(ISA):
             allocs = np.zeros((nproducts, nto))
             for j, (t, b) in enumerate(zip(straffics, budgets)):
                 # if price > budget, set to -1e20
-                minprice = -1e20
-                ps = np.array([b - p if p <= b else -1e20 for p in prices])
+                ps = np.array([b - p if p <= b else self.minprice for p in prices])
                 # Run softmax to see how much of the traffic goes to each indexer
                 allocs[j, :] = t * self.softmax(ps)
 
