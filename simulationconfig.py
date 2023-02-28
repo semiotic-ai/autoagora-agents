@@ -11,7 +11,7 @@ def config():
     nproducts = 1
     ntimesteps = 100
     nepisodes = 1
-    isa = {"kind": "softmax", "source": "consumer", "to": "indexer"}
+    distributor = {"kind": "softmax", "source": "consumer", "to": "indexer"}
     entities = [
         {
             "kind": "entity",

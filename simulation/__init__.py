@@ -13,7 +13,7 @@ simulation_ingredient = sacred.Ingredient("simulation")
 
 @simulation_ingredient.capture
 def environment(
-    isa: dict[str, Any],
+    distributor: dict[str, Any],
     entities: list[dict[str, Any]],
     ntimesteps: int,
     nepisodes: int,
@@ -22,7 +22,7 @@ def environment(
     """Construct an environment from the simulation config.
 
     Arguments:
-        isa (dict[str, Any]): The config for the ISA.
+        distributor (dict[str, Any]): The config for the query distributor.
         entities (list[dict[str, Any]]): The configs for each group of entities.
         nepisodes (int): How many episodes to run.
         ntimesteps (int): How many timesteps to run each episode for.
@@ -31,5 +31,8 @@ def environment(
         Environment: An instantiated simulation environment.
     """
     return Environment(
-        isa=isa, entities=entities, ntimesteps=ntimesteps, nepisodes=nepisodes
+        distributor=distributor,
+        entities=entities,
+        ntimesteps=ntimesteps,
+        nepisodes=nepisodes,
     )

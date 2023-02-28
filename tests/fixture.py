@@ -51,7 +51,7 @@ def simulationconfig():
     return {
         "ntimesteps": 2,
         "nepisodes": 1,
-        "isa": {"kind": "softmax", "source": "consumer", "to": "indexer"},
+        "distributor": {"kind": "softmax", "source": "consumer", "to": "indexer"},
         "entities": [
             {
                 "kind": "entity",
@@ -100,7 +100,7 @@ def simulationconfig():
 @pytest.fixture
 def env(simulationconfig):
     return environment(
-        simulationconfig["isa"],
+        simulationconfig["distributor"],
         simulationconfig["entities"],
         simulationconfig["ntimesteps"],
         simulationconfig["nepisodes"],

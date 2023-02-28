@@ -6,9 +6,9 @@ from typing import Any
 import gymnasium
 import numpy as np
 
+from simulation.distributor import distributorfactory
 from simulation.dynamics import dynamics
 from simulation.entity import Agent, Entity, entitygroupfactory
-from simulation.isa import isafactory
 from simulation.observation import observationfactory
 from simulation.reward import rewardfactory
 
@@ -17,7 +17,7 @@ class Environment(gymnasium.Env):
     """The AutoAgora Environment.
 
     Keyword Arguments:
-        isa (dict[str, Any]): The config for the ISA.
+        distributor (dict[str, Any]): The config for the distributor.
         entities (list[dict[str, Any]]): The configs for each group of entities.
 
     Attributes:
@@ -35,7 +35,7 @@ class Environment(gymnasium.Env):
     def __init__(
         self,
         *,
-        isa: dict[str, Any],
+        distributor: dict[str, Any],
         entities: list[dict[str, Any]],
         ntimesteps: int,
         nepisodes: int
@@ -56,7 +56,7 @@ class Environment(gymnasium.Env):
             for e in entities
             if e["kind"] == "agent"
         }
-        self.isa = isafactory(**isa)
+        self.distributor = distributorfactory(**distributor)
 
     def reset(
         self,
@@ -113,7 +113,7 @@ class Environment(gymnasium.Env):
         for agent in self.agentslist:
             dynamics(agent.state, agent.action)  # type: ignore
 
-        self.isa(entities=self.groups)
+        self.distributor(entities=self.groups)
 
         return self.observation, self.action, self.reward, self.done
 

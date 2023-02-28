@@ -3,13 +3,13 @@
 
 import numpy as np
 
-from simulation import isa
+from simulation import distributor
 from simulation.entity import entitygroupfactory
 
 from ..fixture import *
 
 
-def test_sigmoidisa_one_indexer_all_traffic(agentconfig, consumerconfig):
+def test_softmaxdistributor_one_indexer_all_traffic(agentconfig, consumerconfig):
     # Set up agents
     agentconfig["count"] = 2
     nproducts = 3
@@ -18,7 +18,9 @@ def test_sigmoidisa_one_indexer_all_traffic(agentconfig, consumerconfig):
     indexers[1].state.value = 5 * np.ones(nproducts)  # Other agent's price > budget
     consumers = entitygroupfactory(**consumerconfig)
     entities = {"consumer": consumers, "indexer": indexers}
-    _isa = isa.isafactory(kind="softmax", source="consumer", to="indexer")
-    _isa(entities=entities)
+    dist = distributor.distributorfactory(
+        kind="softmax", source="consumer", to="indexer"
+    )
+    dist(entities=entities)
     assert sum(indexers[0].state.traffic) == 9
     assert sum(indexers[1].state.traffic) == 0

@@ -4,7 +4,7 @@
 import numpy as np
 import pytest
 
-from simulation.isa import SoftmaxISA
+from simulation.distributor import SoftmaxDistributor
 
 from ..fixture import *
 
@@ -12,7 +12,7 @@ from ..fixture import *
 def test_environment_construction(env):
     # Two groups created
     assert len(env.groups) == 2
-    assert isinstance(env.isa, SoftmaxISA)
+    assert isinstance(env.distributor, SoftmaxDistributor)
 
 
 def test_environment_reset(env):

@@ -60,7 +60,7 @@ As such, the config should specify the inputs to the `Environment` class' initia
 
 ``` python
 """
-    isa (dict[str, Any]): The config for the ISA.
+    distributor (dict[str, Any]): The config for the query distributor.
     entities (list[dict[str, Any]]): The configs for each group of entities.
     nepisodes (int): How many episodes to run.
     ntimesteps (int): How many timesteps to run each episode for.
@@ -69,8 +69,8 @@ As such, the config should specify the inputs to the `Environment` class' initia
 
 `nepisodes` and `ntimesteps` are self-explanatory.
 
-`isa` is a dictionary that specifies the configuration of which ISA to use.
-See the `isa` documentation for more details.
+`distributor` is a dictionary that specifies the configuration of which ISA to use.
+See the `distributor` documentation for more details.
 
 `entities` is a list of configs for each entity type.
 Each entry in the `entities` list is a dictionary.

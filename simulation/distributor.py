@@ -9,7 +9,7 @@ import experiment
 from simulation.entity import Entity
 
 
-class ISA(ABC):
+class Distributor(ABC):
     """The indexer selection algorithm base class.
 
     Attributes:
@@ -33,7 +33,7 @@ class ISA(ABC):
         pass
 
 
-class SoftmaxISA(ISA):
+class SoftmaxDistributor(Distributor):
     """Allocates traffic via a softmax function.
 
     However, if an indexer's price exceeds a consumer's budget, the indexer gets 0 traffic.
@@ -82,17 +82,17 @@ class SoftmaxISA(ISA):
             t.state.traffic = ttraffics[i, :]
 
 
-def isafactory(*, kind: str, source: str, to: str, **kwargs) -> ISA:
-    """Instantiate a new ISA.
+def distributorfactory(*, kind: str, source: str, to: str, **kwargs) -> Distributor:
+    """Instantiate a new Distributor.
 
     Keyword Arguments:
-        kind (str): The type of ISA to instantiate.
-            "softmax" -> SoftmaxISA
+        kind (str): The type of Distributor to instantiate.
+            "softmax" -> SoftmaxDistributor
         source (str): The group from which the query comes. E.g., "consumer"
         to (str): The group to which the query goes. E.g., "indexer"
 
     Returns:
-        ISA: An instantiated ISA.
+        Distributor: An instantiated Distributor.
     """
-    isas = {"softmax": SoftmaxISA}
-    return experiment.factory(kind, isas, source=source, to=to, **kwargs)
+    distributors = {"softmax": SoftmaxDistributor}
+    return experiment.factory(kind, distributors, source=source, to=to, **kwargs)
