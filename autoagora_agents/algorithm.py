@@ -97,6 +97,8 @@ class PredeterminedAlgorithm(Algorithm):
         super().__init__(group=group, i=i)
         if timestamps[0] != 0:
             raise ValueError("The first timestamp must be 0.")
+        if len(timestamps) != len(vals):
+            raise ValueError("The timestamps and vals lists must have the same length")
         self.timestamps = timestamps
         self.vals = vals
         self.ix = 0

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
+import pytest
 import torch
 
 from autoagora_agents import algorithm
@@ -26,6 +27,18 @@ def test_predetermined(predeterminedconfig):
     assert agent.niterations == 10
     agent.reset()
     assert agent.niterations == 0
+
+
+def test_predetermined_nonzero_first_timestamp(predeterminedconfig):
+    predeterminedconfig["timestamps"] = [5, 10, 15]
+    with pytest.raises(ValueError):
+        _ = algorithm.algorithmgroupfactory(**predeterminedconfig)[0]
+
+
+def test_predetermined_different_length_lists(predeterminedconfig):
+    predeterminedconfig["timestamps"] = [0, 10]
+    with pytest.raises(ValueError):
+        _ = algorithm.algorithmgroupfactory(**predeterminedconfig)[0]
 
 
 def test_advantage_reward_std_nan(predeterminedconfig):
