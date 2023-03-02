@@ -21,6 +21,7 @@ def test_pricestate_priceaction_dynamics():
         "low": np.zeros(3),
         "high": 3 * np.ones(3),
         "shape": (3,),
+        "seed": 0,
     }
     a = actionfactory(**action)
     a.value = np.array([1, 2, 3])
@@ -42,6 +43,7 @@ def test_pricestate_pricemultiplieraction_dynamics():
         "high": 3 * np.ones(3),
         "shape": (3,),
         "baseprice": 0.1 * np.ones(3),
+        "seed": 0,
     }
     a = actionfactory(**action)
     a.value = np.array([1, 2, 3])
@@ -63,6 +65,7 @@ def test_budgetstate_budgetaction_dynamics():
         "low": np.zeros(3),
         "high": 3 * np.ones(3),
         "shape": (3,),
+        "seed": 0,
     }
     a = actionfactory(**action)
     a.value = np.array([1, 2, 3])
