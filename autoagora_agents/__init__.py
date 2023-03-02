@@ -11,7 +11,7 @@ algorithm_ingredient = sacred.Ingredient("algorithm")
 
 
 @algorithm_ingredient.capture
-def controller(*, agents: list[dict[str, Any]], seed: int, **kwargs) -> Controller:
+def controller(*, agents: list[dict[str, Any]], seed: int) -> Controller:
     """Construct a controller from the algorithm config.
 
     Keyword Arguments:

@@ -17,7 +17,6 @@ def environment(
     entities: list[dict[str, Any]],
     ntimesteps: int,
     nepisodes: int,
-    **kwargs
 ) -> Environment:
     """Construct an environment from the simulation config.
 
