@@ -48,38 +48,49 @@ class SoftmaxDistributor(Distributor):
         self.minprice = -1e20
 
     @staticmethod
-    def softmax(x: np.ndarray) -> np.ndarray:
-        """np.ndarray: Compute softmax of input array."""
-        ex = np.exp(x - np.max(x))
-        return ex / np.sum(ex, axis=0)
+    def softmaxmask(x: np.ndarray, mask: np.ndarray) -> np.ndarray:
+        """Compute the columnwise softmax for elements that are True in the mask.
 
-    # FIXME: Clean up
+        Arguments:
+            x (np.ndarray): The array for which to compute the softmax.
+            mask (np.ndarray): The mask array. The function works for True values.
+
+        Returns:
+            np.ndarray: An array in which the indices that are True in the mask are
+                columnwise softmaxed, and the indices that are False are zeroed.
+        """
+        x = np.atleast_2d(x)
+        mask = np.atleast_2d(mask)
+        y = np.zeros_like(x)
+        # Iterate over columns
+        for j in range(x.shape[1]):
+            # Get masked column
+            xmask = x[:, j][mask[:, j]]
+            if xmask.size <= 0:
+                continue
+            # Subtract max for numerical stability as np.exp(inf) is inf
+            # but np.exp(-inf) is 0
+            ex = np.exp(xmask - np.max(xmask))
+            # Set value into masked indices
+            y[:, j][mask[:, j]] = ex / np.sum(ex)
+        return y
+
     def __call__(self, *, entities: dict[str, list[Entity]]) -> None:
         source = entities[self.source]
         to = entities[self.to]
-        nproducts = len(to[0].state.value)  # first
-        nto = len(to)
-        ttraffics = np.zeros((nto, nproducts))
-        # For each product
-        for i in range(nproducts):
-            # Get all prices
-            prices = [t.state.value[i] for t in to]  # nto
-            # For each budget
-            budgets = [s.state.value[i] for s in source]  # nsource
-            straffics = [s.state.traffic[i] for s in source]  # nsource
-            allocs = np.zeros((nproducts, nto))
-            for j, (t, b) in enumerate(zip(straffics, budgets)):
-                # if price > budget, set to -1e20
-                ps = np.array([b - p if p <= b else self.minprice for p in prices])
-                # Run softmax to see how much of the traffic goes to each indexer
-                allocs[j, :] = t * self.softmax(ps)
+        prices = np.atleast_2d(np.vstack([t.state.value for t in to]))
+        traffics = np.zeros_like(prices)
+        for s in source:
+            budget = s.state.value
+            # If above budget, don't get any traffic
+            mask = prices <= budget
+            # Compute how much traffic goes to each agent below the budget
+            percenttraffic = self.softmaxmask(prices, mask)
+            # Accumulate traffic values per agent
+            traffics += np.multiply(percenttraffic, s.state.traffic)
 
-            # Get total traffic per indexer for product i
-            ttraffics[:, i] = np.sum(allocs, axis=0)
-
-        # Assign computed value back to state
-        for i, t in enumerate(to):
-            t.state.traffic = ttraffics[i, :]
+        for traffic, t in zip(traffics, to):
+            t.state.traffic = traffic
 
 
 def distributorfactory(*, kind: str, source: str, to: str, **kwargs) -> Distributor:
