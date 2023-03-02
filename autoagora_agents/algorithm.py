@@ -369,7 +369,7 @@ class PPOBandit(BanditAlgorithm):
             torch.sum(loss).backward()
             self.opt.step()
 
-            return True
+        return True
 
     def update(self):
         ran = self._update()
