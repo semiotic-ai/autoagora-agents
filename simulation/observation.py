@@ -8,12 +8,23 @@ from simulation.entity import Agent, Entity
 
 
 class Observation:
+    """The Observation base class."""
+
     def __init__(self) -> None:
         pass
 
     def __call__(
         self, *, agent: Agent, entities: dict[str, list[Entity]]
     ) -> np.ndarray:
+        """Generate the agent's observation.
+
+        Keyword Arguments:
+            agent (Agent): The agent for whom to generate the observation.
+            entities (dict[str, list[Entity]]): The entities in the environment.
+
+        Returns:
+            np.ndarray: The agent's observation.
+        """
         return np.array([])
 
 
