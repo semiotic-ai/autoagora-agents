@@ -334,9 +334,9 @@ class PPOBandit(BanditAlgorithm):
         """Penalise high entropies."""
         return -self.actiondist.entropy() * self.entropycoeff
 
-    def _update(self):
+    def _update(self) -> bool:
         if not buffer.isfull(self.buffer):
-            return
+            return False
         super().update()
 
         rewards = buffer.get("reward", self.buffer)
@@ -369,9 +369,12 @@ class PPOBandit(BanditAlgorithm):
             torch.sum(loss).backward()
             self.opt.step()
 
+            return True
+
     def update(self):
-        self._update()
-        self.buffer.clear()
+        ran = self._update()
+        if ran:
+            self.buffer.clear()
 
 
 # NOTE: This is experimental. Do not use!
@@ -423,7 +426,7 @@ class RollingMemoryPPOBandit(PPOBandit):
         return buffer.get("logprob", self.buffer).unsqueeze(dim=1)
 
     def update(self):
-        self._update()
+        _ = self._update()
 
 
 def algorithmgroupfactory(*, kind: str, count: int, **kwargs) -> list[Algorithm]:

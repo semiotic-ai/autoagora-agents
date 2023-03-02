@@ -9,7 +9,7 @@ from simulation import simulation_ingredient
 @simulation_ingredient.config
 def config():
     nproducts = 1
-    ntimesteps = 100
+    ntimesteps = 1000
     nepisodes = 1
     distributor = {"kind": "softmax", "source": "consumer", "to": "indexer"}
     entities = [
