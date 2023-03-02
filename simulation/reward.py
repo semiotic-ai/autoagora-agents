@@ -74,6 +74,7 @@ class SumRegretRatio(RewardDecorator):
 
     def __call__(self, *, agent: Agent, entities: dict[str, list[Entity]]) -> float:
         consumers = entities[self.fromgroup]
+        # How much the agent could have earned. Each consumer's budget * the number of queries they sent
         denom = np.sum([np.multiply(c.state.value, c.state.traffic) for c in consumers])
         val = (agent.state.fee / denom) * self.multiplier  # type: ignore
         return val + self._reward(agent=agent, entities=entities)
