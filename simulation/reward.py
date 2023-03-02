@@ -8,10 +8,21 @@ from simulation.entity import Agent, Entity
 
 
 class Reward:
+    """The Reward base class."""
+
     def __init__(self) -> None:
         pass
 
     def __call__(self, *, agent: Agent, entities: dict[str, list[Entity]]) -> float:
+        """Compute the reward.
+
+        Keyword Arguments:
+            agent (Agent): The agent for whom to compute the reward.
+            entities (dict[str, list[Entity]]): The entities in the environment.
+
+        Returns:
+            float: The agent's reward.
+        """
         return 0.0
 
 
