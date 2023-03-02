@@ -30,8 +30,8 @@ def main():
     # NOTE: The structure of this loop is very bandit-specific.
     # This would not work for a more complex RL algorithm without
     # modifications
-    env = environment()  # type: ignore
     algs = controller()  # type: ignore
+    env = environment()  # type: ignore
     for _ in range(env.nepisodes):
         obs, act, rew, done = env.reset()
         while not env.isfinished():

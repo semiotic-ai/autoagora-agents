@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import gymnasium
-from numpy.typing import NDArray
+import numpy as np
 
 import experiment
 
@@ -10,25 +10,34 @@ import experiment
 class Action:
     """Action of an entity.
 
-    Attributes:
-        low (float | NDArray): The lower bound of the action space
-        high (float | NDArray): The upper bound of the action space
+    Keyword Arguments:
+        low (float | np.ndarray): The lower bound of the action space
+        high (float | np.ndarray): The upper bound of the action space
         shape (tuple[int, ...]): The shape of the action space
-        value (NDArray): The action of the entity
+        seed (int): The seed of the random action generator.
+
+    Attributes:
+        space (gymnasium.spaces.Box): The action space.
     """
 
     def __init__(
-        self, *, low: float | NDArray, high: float | NDArray, shape: tuple[int, ...]
+        self,
+        *,
+        low: float | np.ndarray,
+        high: float | np.ndarray,
+        shape: tuple[int, ...],
+        seed: int
     ) -> None:
-        self.space = gymnasium.spaces.Box(low, high, shape=shape)
+        self.space = gymnasium.spaces.Box(low, high, shape=shape, seed=seed)
         self._action = self.space.sample()
 
     @property
-    def value(self) -> NDArray:
+    def value(self) -> np.ndarray:
+        """np.ndarray: The action of the entity."""
         return self._action
 
     @value.setter
-    def value(self, v: NDArray) -> None:
+    def value(self, v: np.ndarray) -> None:
         v = experiment.applybounds(v, self.space.low, self.space.high)  # type: ignore
         self._action = v
 
@@ -39,8 +48,10 @@ class PriceAction(Action):
     Use "price" as the "kind" of action in the config.
     """
 
-    def __init__(self, *, low: float, high: float, shape: tuple[int, ...]) -> None:
-        super().__init__(low=low, high=high, shape=shape)
+    def __init__(
+        self, *, low: float, high: float, shape: tuple[int, ...], seed: int
+    ) -> None:
+        super().__init__(low=low, high=high, shape=shape, seed=seed)
 
 
 class PriceMultiplierAction(Action):
@@ -49,21 +60,27 @@ class PriceMultiplierAction(Action):
     Use "pricemultiplier" as the "kind" of action in the config.
 
     Attributes:
-        baseprice (NDArray): The base price for each product.
+        baseprice (np.ndarray): The base price for each product.
     """
 
     def __init__(
-        self, *, low: float, high: float, shape: tuple[int, ...], baseprice: NDArray
+        self,
+        *,
+        low: float,
+        high: float,
+        shape: tuple[int, ...],
+        seed: int,
+        baseprice: np.ndarray
     ) -> None:
-        super().__init__(low=low, high=high, shape=shape)
+        super().__init__(low=low, high=high, shape=shape, seed=seed)
         self.baseprice = baseprice
 
     @property
-    def value(self) -> NDArray:
+    def value(self) -> np.ndarray:
         return self._action
 
     @value.setter
-    def value(self, v: NDArray) -> None:
+    def value(self, v: np.ndarray) -> None:
         v = experiment.applybounds(v, self.space.low, self.space.high)  # type: ignore
         self._action = v
 
@@ -74,12 +91,14 @@ class BudgetAction(Action):
     Use "budget" as the "kind" of action in the config.
     """
 
-    def __init__(self, *, low: float, high: float, shape: tuple[int, ...]) -> None:
-        super().__init__(low=low, high=high, shape=shape)
+    def __init__(
+        self, *, low: float, high: float, shape: tuple[int, ...], seed: int
+    ) -> None:
+        super().__init__(low=low, high=high, shape=shape, seed=seed)
 
 
 def actionfactory(
-    *, kind: str, low: float, high: float, shape: tuple[int, ...], **kwargs
+    *, kind: str, low: float, high: float, shape: tuple[int, ...], seed: int, **kwargs
 ) -> Action:
     """Instantiate a new action.
 
@@ -91,6 +110,7 @@ def actionfactory(
         low (float): The lower bound of the action space
         high (float): The upper bound of the action space
         shape (tuple[int, ...]): The shape of the action space
+        seed (int): The seed of the random action generator.
 
     Returns:
         Action: An instantiated action.
@@ -100,4 +120,6 @@ def actionfactory(
         "budget": BudgetAction,
         "pricemultiplier": PriceMultiplierAction,
     }
-    return experiment.factory(kind, states, low=low, high=high, shape=shape, **kwargs)
+    return experiment.factory(
+        kind, states, low=low, high=high, shape=shape, seed=seed, **kwargs
+    )
