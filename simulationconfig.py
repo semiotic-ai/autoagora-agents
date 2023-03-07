@@ -9,7 +9,7 @@ from simulation import simulation_ingredient
 @simulation_ingredient.config
 def config():
     nproducts = 1
-    ntimesteps = 1000
+    ntimesteps = 10000
     nepisodes = 1
     distributor = {"kind": "softmax", "source": "consumer", "to": "indexer"}
     entities = [
@@ -27,7 +27,7 @@ def config():
         },
         {
             "kind": "agent",
-            "count": 2,
+            "count": 1,
             "group": "indexer",
             "state": {
                 "kind": "price",
@@ -36,11 +36,10 @@ def config():
                 "initial": np.ones(nproducts),
             },
             "action": {
-                "kind": "pricemultiplier",
+                "kind": "price",
                 "low": np.zeros(nproducts),
                 "high": 3 * np.ones(nproducts),
                 "shape": (nproducts,),
-                "baseprice": 2 * np.ones(nproducts),
             },
             "reward": [
                 {
