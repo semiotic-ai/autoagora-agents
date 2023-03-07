@@ -18,20 +18,25 @@ parser = argparse.ArgumentParser(description="Run experiments for autoagora")
 parser.add_argument("-n", "--name")
 parser.add_argument("-s", "--simulation_path", default="simulationconfig.py")
 parser.add_argument("-a", "--algorithm_path", default="algorithmconfig.py")
+parser.add_argument("-e", "--experiment_path", default="experimentconfig.py")
 args = parser.parse_args()
 
 ex = experiment.experiment(
-    name=args.name, spath=args.simulation_path, apath=args.algorithm_path
+    name=args.name,
+    spath=args.simulation_path,
+    apath=args.algorithm_path,
+    epath=args.experiment_path,
 )
 
 
 @ex.automain
-def main():
+def main(_run):
     # NOTE: The structure of this loop is very bandit-specific.
     # This would not work for a more complex RL algorithm without
     # modifications
-    algs = controller()  # type: ignore
-    env = environment()  # type: ignore
+    seed = _run.config["experiment"]["seed"]
+    algs = controller(seed=seed)  # type: ignore
+    env = environment(seed=seed)  # type: ignore
     for _ in range(env.nepisodes):
         obs, act, rew, done = env.reset()
         while not env.isfinished():

@@ -6,7 +6,6 @@ from autoagora_agents import algorithm_ingredient
 
 @algorithm_ingredient.config
 def config():
-    seed = 0
     agents = [
         {
             "kind": "ppobandit",

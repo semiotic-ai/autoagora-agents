@@ -17,6 +17,7 @@ def environment(
     entities: list[dict[str, Any]],
     ntimesteps: int,
     nepisodes: int,
+    seed: int,
 ) -> Environment:
     """Construct an environment from the simulation config.
 
@@ -25,6 +26,7 @@ def environment(
         entities (list[dict[str, Any]]): The configs for each group of entities.
         nepisodes (int): How many episodes to run.
         ntimesteps (int): How many timesteps to run each episode for.
+        seed (int): The random seed.
 
     Returns:
         Environment: An instantiated simulation environment.
@@ -34,4 +36,5 @@ def environment(
         entities=entities,
         ntimesteps=ntimesteps,
         nepisodes=nepisodes,
+        seed=seed,
     )

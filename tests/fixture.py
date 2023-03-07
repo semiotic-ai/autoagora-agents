@@ -104,6 +104,7 @@ def env(simulationconfig):
         simulationconfig["entities"],
         simulationconfig["ntimesteps"],
         simulationconfig["nepisodes"],
+        seed=0,
     )
 
 

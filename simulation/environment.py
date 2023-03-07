@@ -30,6 +30,7 @@ class Environment(gymnasium.Env):
             of entities in that group.
         _observations (dict[str, Observation]) A mapping from group names to that group's
             observation function.
+        seed (int): The random seed.
     """
 
     def __init__(
@@ -38,7 +39,8 @@ class Environment(gymnasium.Env):
         distributor: dict[str, Any],
         entities: list[dict[str, Any]],
         ntimesteps: int,
-        nepisodes: int
+        nepisodes: int,
+        seed: int,
     ) -> None:
         super().__init__()
         # Create entities
@@ -46,6 +48,7 @@ class Environment(gymnasium.Env):
         self.nepisodes = nepisodes
         self.ntimesteps = ntimesteps
         self.t = 0
+        self.seed = seed
         self._rewards = {
             e["group"]: rewardfactory(rewards=e["reward"])
             for e in entities

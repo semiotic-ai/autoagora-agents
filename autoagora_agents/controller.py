@@ -1,6 +1,7 @@
 # Copyright 2022-, Semiotic AI, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+import random
 from typing import Any
 
 import numpy as np
@@ -24,6 +25,8 @@ class Controller:
     def __init__(self, *, agents: list[dict[str, Any]], seed: int) -> None:
         self.groups = {a["group"]: algorithmgroupfactory(**a) for a in agents}
         torch.manual_seed(seed)
+        np.random.seed(seed)
+        random.seed(seed)
 
     def __call__(
         self,
