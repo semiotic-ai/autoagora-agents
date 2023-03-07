@@ -8,7 +8,7 @@ from simulation import simulation_ingredient
 
 @simulation_ingredient.config
 def config():
-    nproducts = 1
+    nproducts = 1  # This is a convenience variable. Does not actually get used by the simulation.
     ntimesteps = 10000
     nepisodes = 1
     distributor = {"kind": "softmax", "source": "consumer", "to": "indexer"}
