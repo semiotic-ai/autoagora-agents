@@ -8,16 +8,28 @@ repo_url: https://github.com/semiotic-ai/autoagora-agents
 edit_uri: ""
 
 # Configuration
-theme: 
+theme:
   name: material
   features:
-    - navigation.tabs
-    - toc.integrate
-  icon:
-    repo: fontawesome/brands/github
+  - content.code.annotate
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
   palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
     primary: teal
     accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to light mode
 
 plugins:
 - search
@@ -29,7 +41,7 @@ plugins:
           docstring_section_style: list
           members_order: source
           show_root_heading: true
-          show_signature_annotations: true
+          show_signature_annotations: false
           heading_level: 3
           filters: ["!_"]
 - mike
@@ -49,6 +61,19 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
-  - Home : README.md
-  - Python API : api.md
-  - Simulation : sim.md
+  - Developer's Guide: index.md
+  - Reference:
+    - Agents:
+      - Algorithm: code/algorithm.md
+      - Buffer: code/buffer.md
+      - Controller: code/controller.md
+      - Distribution: code/distribution.md
+    - Simulation:
+      - Distributor: code/distributor.md
+      - Dynamics: code/dynamics.md
+      - Environment: code/environment.md
+      - Observation: code/observation.md
+      - Reward: code/reward.md
+
+  - Development:
+    - Contributing: contributing.md

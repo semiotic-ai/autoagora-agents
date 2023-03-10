@@ -49,12 +49,17 @@ torch = [
 black = "^22.1.0"
 isort = "^5.10.1"
 pytest = "^7.1.2"
-sphinx = "^4.5.0"
-sphinx-rtd-theme = "^1.0.0"
 pyright = "^1.1.244"
-sphinxcontrib-napoleon = "^0.7"
-myst-parser = "^0.17.2"
 pylint = "^2.14.5"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.4.2"
+mkdocs-material = "^9.0.8"
+mkdocstrings-python = "^0.8.3"
+mike = "^1.1.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
