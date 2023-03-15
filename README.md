@@ -93,8 +93,6 @@ The experiment uses the algorithm config to construct the `Controller` object, w
 The `Controller` also constructs the agents.
 It takes two inputs: `seed` and `agents`.
 
-The `seed` is just the random seed set for reproducibility.
-
 The `agents` entry is a list of dictionaries similar to `entities` from the simulation config.
 In fact, `agents` does much the same for the algorithm side of the code as `entities` does for the simulation side of the code.
 In it, each entry is a dictionary specifying the configuration of an algorithm for a particular group.
@@ -102,3 +100,19 @@ Note here that the `"group"` field must match the `"group"` field of an agent ty
 This is how the code knows how to map between the simulation and the algorithm.
 Other than that, the rest of the dictionary should map to the configuration of a particular algorithm.
 See the `algorithm` documentation for more details.
+
+
+#### Experiment Config
+
+One more config: the experiment config.
+The structure should hopefully not be a surprise at this point.
+
+``` python
+from experiment import experiment_ingredient  # Import the experiment ingredient
+
+@experiment_ingredient.config  # Tag as the experiment config
+def config():
+    ...
+```
+
+The `seed` is just the random seed set for reproducibility.
