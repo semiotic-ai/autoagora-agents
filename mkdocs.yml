@@ -61,6 +61,7 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
+  - Experimentation: experimentation.md
   - Developer's Guide: index.md
   - Reference:
     - Agents:
